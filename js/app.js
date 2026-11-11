@@ -58,9 +58,17 @@
       steelSoul: pd.permadeathMode > 0,
       loadedAt: Date.now(),
     };
+    const pctOverride = {};
+    for (const section of SECTIONS) {
+      if (!section.gamePct) continue;
+      try {
+        const v = section.gamePct(pd);
+        if (v !== null) pctOverride[section.id] = Math.min(section.max, v);
+      } catch { /* ignore */ }
+    }
     let stats = null;
     try { stats = HKExtras.computeStats(raw); } catch (e) { console.warn(e); }
-    return { done, counters, meta, stats };
+    return { done, counters, meta, stats, pctOverride };
   }
 
   async function loadBuffer(buffer, label) {
@@ -126,6 +134,13 @@
   }
 
   /* -------------------------------- Rendering ------------------------------- */
+
+  // Use the game's own value when the save provides one (masks / soul vessels).
+  function sectionPct(section, doneCount) {
+    const o = state.save && state.save.pctOverride;
+    if (o && o[section.id] !== undefined) return o[section.id];
+    return sectionPercent(section, doneCount);
+  }
 
   function isDone(id) {
     return state.save ? state.save.done.includes(id) : state.manual.has(id);
@@ -207,7 +222,7 @@
         }
       }
 
-      const pct = sectionPercent(section, doneCount);
+      const pct = sectionPct(section, doneCount);
       total += pct;
       const complete = section.items ? doneCount === count : false;
       card.classList.toggle("complete", complete);
@@ -268,7 +283,7 @@
     let leg = "";
     for (const section of SECTIONS) {
       if (section.extra) continue;
-      const pct = sectionPercent(section, sectionDone(section));
+      const pct = sectionPct(section, sectionDone(section));
       const label = section.title.replace(/^DLC : /, "");
       for (let i = 0; i < section.max; i++) {
         cells += `<button class="cell${i < pct ? " on" : ""}" style="--c:${section.color}" data-sec="${section.id}" title="${esc(label)} : ${pct}/${section.max} %"></button>`;

@@ -14,7 +14,6 @@
   const flag = (key) => (pd) => pd[key] === true;
   const scene = (id, sceneName) => (pd, sc) => sc(id, sceneName);
   const anyOf = (...fns) => (pd, sc) => fns.some((f) => f(pd, sc));
-  const ghost = (key) => (pd) => pd[key] >= 2 || pd[key] === true;
   const door = (n) => (pd) => !!(pd["bossDoorStateTier" + n] && pd["bossDoorStateTier" + n].completed);
 
   const charm = (n, name, en, hint) => ({
@@ -23,7 +22,7 @@
     en,
     hint,
     wiki: en.replace(/ /g, "_"),
-    check: (pd) => pd["gotCharm_" + n] === true || pd["brokenCharm_" + n] === true,
+    check: (pd) => pd["gotCharm_" + n] === true,
   });
 
   const SECTIONS = [
@@ -31,17 +30,17 @@
       id: "bosses", title: "Boss", max: 14, icon: "⚔",
       desc: "Chaque boss de cette liste rapporte 1 %.",
       items: [
-        { id: "bossGruzMother", name: "Mère de Gruz", en: "Gruz Mother", hint: "Routes Oubliées, en bas à droite", wiki: "Gruz_Mother", check: anyOf(scene("Battle Scene", "Crossroads_04"), flag("killedBigFly")) },
-        { id: "falseKnightDefeated", name: "Faux Chevalier", en: "False Knight", hint: "Routes Oubliées, au centre", wiki: "False_Knight", check: flag("falseKnightDefeated") },
+        { id: "bossGruzMother", name: "Mère de Gruz", en: "Gruz Mother", hint: "Routes Oubliées, en bas à droite", wiki: "Gruz_Mother", check: flag("killedBigFly") },
+        { id: "falseKnightDefeated", name: "Faux Chevalier", en: "False Knight", hint: "Routes Oubliées, au centre", wiki: "False_Knight", check: flag("killedFalseKnight") },
         { id: "hornet1Defeated", name: "Hornet (Vertchemin)", en: "Hornet Protector", hint: "Vertchemin, au-dessus de la station de Coléoptère", wiki: "Hornet_Protector", check: flag("hornet1Defeated") },
-        { id: "bossBroodingMawlek", name: "Mawlek Maussade", en: "Brooding Mawlek", hint: "Routes Oubliées, nécessite la Pince de mante religieuse", wiki: "Brooding_Mawlek", check: anyOf(scene("Battle Scene", "Crossroads_09"), flag("killedMawlek")) },
-        { id: "defeatedDungDefender", name: "Défenseur Bousier", en: "Dung Defender", hint: "Voies d'Eau Royales, à droite", wiki: "Dung_Defender", check: flag("defeatedDungDefender") },
-        { id: "mageLordDefeated", name: "Maître de l'Âme", en: "Soul Master", hint: "Cité des Larmes : Sanctuaire de l'Âme", wiki: "Soul_Master", check: flag("mageLordDefeated") },
-        { id: "defeatedMantisLords", name: "Dames Mante", en: "Mantis Lords", hint: "Caverne Nocive : Village des Mantes", wiki: "Mantis_Lords", check: flag("defeatedMantisLords") },
+        { id: "bossBroodingMawlek", name: "Mawlek Maussade", en: "Brooding Mawlek", hint: "Routes Oubliées, nécessite la Pince de mante religieuse", wiki: "Brooding_Mawlek", check: flag("killedMawlek") },
+        { id: "defeatedDungDefender", name: "Défenseur Bousier", en: "Dung Defender", hint: "Voies d'Eau Royales, à droite", wiki: "Dung_Defender", check: flag("killedDungDefender") },
+        { id: "mageLordDefeated", name: "Maître de l'Âme", en: "Soul Master", hint: "Cité des Larmes : Sanctuaire de l'Âme", wiki: "Soul_Master", check: flag("killedMageLord") },
+        { id: "defeatedMantisLords", name: "Dames Mante", en: "Mantis Lords", hint: "Caverne Nocive : Village des Mantes", wiki: "Mantis_Lords", check: flag("killedMantisLord") },
         { id: "killedMimicSpider", name: "Nosk", en: "Nosk", hint: "Nid-profond, à gauche de la source chaude (Coeur de cristal)", wiki: "Nosk", check: flag("killedMimicSpider") },
         { id: "killedInfectedKnight", name: "Vaisseau Brisé", en: "Broken Vessel", hint: "Bassin Ancestral, en bas à gauche", wiki: "Broken_Vessel", check: flag("killedInfectedKnight") },
-        { id: "collectorDefeated", name: "Le Collectionneur", en: "The Collector", hint: "Cité des Larmes : Tour de l'Amour (Clé de l'amour)", wiki: "The_Collector", check: flag("collectorDefeated") },
-        { id: "defeatedMegaJelly", name: "Uumuu", en: "Uumuu", hint: "Brumes-canyon : Archives de l'Érudite", wiki: "Uumuu", check: flag("defeatedMegaJelly") },
+        { id: "collectorDefeated", name: "Le Collectionneur", en: "The Collector", hint: "Cité des Larmes : Tour de l'Amour (Clé de l'amour)", wiki: "The_Collector", check: flag("killedJarCollector") },
+        { id: "defeatedMegaJelly", name: "Uumuu", en: "Uumuu", hint: "Brumes-canyon : Archives de l'Érudite", wiki: "Uumuu", check: flag("killedMegaJellyfish") },
         { id: "hornetOutskirtsDefeated", name: "Hornet (Frontières du Royaume)", en: "Hornet Sentinel", hint: "Frontières du Royaume, nécessite les Ailes de monarque", wiki: "Hornet_Sentinel", check: flag("hornetOutskirtsDefeated") },
         { id: "killedTraitorLord", name: "Seigneur Traître", en: "Traitor Lord", hint: "Jardins de la Reine, nécessite la Cape des ombres", wiki: "Traitor_Lord", check: flag("killedTraitorLord") },
         { id: "killedBlackKnight", name: "Veilleurs", en: "Watcher Knights", hint: "Cité des Larmes : L'Observatoire", wiki: "Watcher_Knights", check: flag("killedBlackKnight") },
@@ -89,7 +88,7 @@
         {
           id: "gotCharm_36", name: "#36 Âme-royale (2 Fragments blancs)", en: "Kingsoul", wiki: "Kingsoul",
           hint: "Dame Blanche (Jardins de la Reine) + Palais Blanc",
-          check: (pd) => (pd.gotQueenFragment === true && pd.gotKingFragment === true) || pd.gotShadeCharm === true,
+          check: (pd) => pd.royalCharmState > 2,
         },
       ],
     },
@@ -142,6 +141,7 @@
       id: "masks", title: "Éclats de masque", max: 4, icon: "♥",
       desc: "4 éclats = 1 masque = 1 %.",
       group: 4,
+      gamePct: (pd) => (typeof pd.maxHealthBase === "number" ? Math.max(0, pd.maxHealthBase - 5) : null),
       items: [
         { id: "slyShellFrag1", name: "Éclat #1", en: "Mask Shard", hint: "Sly : 150 Geo", wiki: "Mask_Shard", check: flag("slyShellFrag1") },
         { id: "slyShellFrag2", name: "Éclat #2", en: "Mask Shard", hint: "Sly : 500 Geo", wiki: "Mask_Shard", check: flag("slyShellFrag2") },
@@ -165,6 +165,7 @@
       id: "vessels", title: "Fragments de réceptacle", max: 3, icon: "◐",
       desc: "3 fragments = 1 Réceptacle d'Âme = 1 %.",
       group: 3,
+      gamePct: (pd) => (typeof pd.MPReserveMax === "number" ? Math.floor(pd.MPReserveMax / 33) : null),
       items: [
         { id: "slyVesselFrag1", name: "Fragment #1", en: "Vessel Fragment", hint: "Sly : 550 Geo", wiki: "Vessel_Fragment", check: flag("slyVesselFrag1") },
         { id: "slyVesselFrag2", name: "Fragment #2", en: "Vessel Fragment", hint: "Sly : 900 Geo + Clé du marchand", wiki: "Vessel_Fragment", check: flag("slyVesselFrag2") },
@@ -190,13 +191,13 @@
       id: "warriors", title: "Rêves de guerriers", max: 7, icon: "☠",
       desc: "Chaque esprit de guerrier vaincu avec l'Aiguillon des rêves rapporte 1 %.",
       items: [
-        { id: "aladarSlugDefeated", name: "Gorb", en: "Gorb", hint: "Falaises Hurlantes, en haut au centre", wiki: "Gorb", check: ghost("aladarSlugDefeated") },
-        { id: "xeroDefeated", name: "Xero", en: "Xero", hint: "Repos Éternel", wiki: "Xero", check: ghost("xeroDefeated") },
-        { id: "mumCaterpillarDefeated", name: "Marmu", en: "Marmu", hint: "Jardins de la Reine, à gauche de la station", wiki: "Marmu", check: ghost("mumCaterpillarDefeated") },
-        { id: "elderHuDefeated", name: "Hu l'Ancien", en: "Elder Hu", hint: "Caverne Nocive, au-dessus du pont d'acide", wiki: "Elder_Hu", check: ghost("elderHuDefeated") },
-        { id: "galienDefeated", name: "Galien", en: "Galien", hint: "Nid-profond, sous le Tramway Délabré", wiki: "Galien", check: ghost("galienDefeated") },
-        { id: "noEyesDefeated", name: "Sans-yeux", en: "No Eyes", hint: "Vertchemin : Sanctuaire de Pierre (Lanterne de Lumafly)", wiki: "No_Eyes", check: ghost("noEyesDefeated") },
-        { id: "markothDefeated", name: "Markoth", en: "Markoth", hint: "Frontières du Royaume, nécessite la Cape des ombres", wiki: "Markoth", check: ghost("markothDefeated") },
+        { id: "aladarSlugDefeated", name: "Gorb", en: "Gorb", hint: "Falaises Hurlantes, en haut au centre", wiki: "Gorb", check: flag("killedGhostAladar") },
+        { id: "xeroDefeated", name: "Xero", en: "Xero", hint: "Repos Éternel", wiki: "Xero", check: flag("killedGhostXero") },
+        { id: "mumCaterpillarDefeated", name: "Marmu", en: "Marmu", hint: "Jardins de la Reine, à gauche de la station", wiki: "Marmu", check: flag("killedGhostMarmu") },
+        { id: "elderHuDefeated", name: "Hu l'Ancien", en: "Elder Hu", hint: "Caverne Nocive, au-dessus du pont d'acide", wiki: "Elder_Hu", check: flag("killedGhostHu") },
+        { id: "galienDefeated", name: "Galien", en: "Galien", hint: "Nid-profond, sous le Tramway Délabré", wiki: "Galien", check: flag("killedGhostGalien") },
+        { id: "noEyesDefeated", name: "Sans-yeux", en: "No Eyes", hint: "Vertchemin : Sanctuaire de Pierre (Lanterne de Lumafly)", wiki: "No_Eyes", check: flag("killedGhostNoEyes") },
+        { id: "markothDefeated", name: "Markoth", en: "Markoth", hint: "Frontières du Royaume, nécessite la Cape des ombres", wiki: "Markoth", check: flag("killedGhostMarkoth") },
       ],
     },
     {
@@ -226,12 +227,12 @@
         charm(39, "Chant du Tisserand", "Weaversong", "Nid-profond : Tanière du Tisserand"),
         {
           id: "gotCharm_40", name: "#40 L'Héritier de Grimm / Mélodie Insouciante", en: "Grimmchild / Carefree Melody", hint: "Dirtmouth, après avoir allumé la lanterne des Falaises Hurlantes", wiki: "Grimmchild",
-          check: (pd) => pd.gotCharm_40 === true || pd.grimmChildLevel >= 5,
+          check: (pd) => pd.gotCharm_40 === true,
         },
         { id: "killedGrimm", name: "Maître de la troupe Grimm", en: "Troupe Master Grimm", hint: "Dirtmouth : après 6 flammes", wiki: "Grimm", check: flag("killedGrimm") },
         {
           id: "grimmChildLevel", name: "Roi des cauchemars Grimm ou bannissement", en: "Nightmare King Grimm / Banishment", hint: "Un seul choix possible par partie", wiki: "Nightmare_King_Grimm",
-          check: (pd) => pd.grimmChildLevel >= 4 || pd.killedNightmareGrimm === true || pd.destroyedNightmareLantern === true,
+          check: (pd) => pd.killedNightmareGrimm === true || pd.destroyedNightmareLantern === true,
         },
       ],
     },
