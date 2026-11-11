@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hollow Knight Completionist</title>
+  <meta name="description" content="Tracker de complétion 112 % pour Hollow Knight : chargez votre sauvegarde et voyez instantanément ce qu'il vous manque.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap hero-inner">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M18 6c-2 10 0 18 6 22-4 2-8 8-8 16 0 10 7 16 16 16s16-6 16-16c0-8-4-14-8-16 6-4 8-12 6-22-4 6-8 10-14 10S22 12 18 6z" fill="currentColor"/>
+          <ellipse cx="25" cy="42" rx="4" ry="6" fill="var(--bg)"/>
+          <ellipse cx="39" cy="42" rx="4" ry="6" fill="var(--bg)"/>
+        </svg>
+        <div>
+          <h1>Hollow Knight <span>Completionist</span></h1>
+          <p class="tagline">Tracker 112 % : chargez votre sauvegarde, on vous dit ce qu'il manque.</p>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="ring" id="ring" style="--p:0">
+          <div class="ring-inner">
+            <strong id="totalPct">0</strong><small>/ 112 %</small>
+          </div>
+        </div>
+        <dl class="stats" id="stats">
+          <div><dt>Source</dt><dd id="statSource">Manuel</dd></div>
+          <div><dt>% en jeu</dt><dd id="statGame">–</dd></div>
+          <div><dt>Temps de jeu</dt><dd id="statTime">–</dd></div>
+          <div><dt>Géo</dt><dd id="statGeo">–</dd></div>
+        </dl>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="loader" id="loader">
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="Charger une sauvegarde">
+        <input type="file" id="fileInput" accept=".dat,.json,.txt,*/*" hidden>
+        <div class="drop-icon">⇪</div>
+        <p><strong>Glissez votre fichier <code>user1.dat</code> ici</strong><br>ou cliquez pour le choisir</p>
+        <p class="muted small">Tout est lu dans votre navigateur. Rien n'est envoyé sur un serveur.</p>
+      </div>
+      <div class="loader-side">
+        <div class="actions">
+          <button id="watchBtn" class="btn" hidden title="Relit automatiquement la sauvegarde quand le jeu l'écrit">Suivre le fichier en direct</button>
+          <button id="clearBtn" class="btn ghost">Réinitialiser</button>
+        </div>
+        <p id="status" class="status" role="status"></p>
+        <details class="paths">
+          <summary>Où trouver ma sauvegarde ?</summary>
+          <p class="small muted">Les fichiers s'appellent <code>user1.dat</code> à <code>user4.dat</code> (un par emplacement de partie).</p>
+          <ul>
+            <li><b>Windows</b> <code class="copy" title="Cliquer pour copier">%USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight</code></li>
+            <li><b>macOS</b> <code class="copy" title="Cliquer pour copier">~/Library/Application Support/unity.Team Cherry.Hollow Knight</code></li>
+            <li><b>Linux / Steam Deck</b> <code class="copy" title="Cliquer pour copier">~/.config/unity3d/Team Cherry/Hollow Knight</code></li>
+            <li><b>Steam Deck (Proton)</b> <code class="copy" title="Cliquer pour copier">~/.local/share/Steam/steamapps/compatdata/367520/pfx/drive_c/users/steamuser/AppData/LocalLow/Team Cherry/Hollow Knight</code></li>
+          </ul>
+          <p class="small muted">Astuce Windows : collez le chemin dans la barre d'adresse de l'explorateur. Sur macOS : Finder → Aller → Aller au dossier (⇧⌘G).</p>
+        </details>
+      </div>
+    </section>
+
+    <nav class="toolbar" aria-label="Filtres">
+      <input type="search" id="search" placeholder="Rechercher (ex. Nosk, Salubra, Jardins…)" autocomplete="off">
+      <div class="seg" role="group" aria-label="Afficher">
+        <button data-filter="all" class="on">Tout</button>
+        <button data-filter="missing">Manquants</button>
+        <button data-filter="done">Obtenus</button>
+      </div>
+      <label class="toggle"><input type="checkbox" id="spoilers" checked> Indices</label>
+    </nav>
+
+    <div id="sections" class="sections"></div>
+  </main>
+
+  <footer class="wrap footer">
+    <p class="small muted">Projet de fan, non affilié à Team Cherry. Noms d'objets en anglais (comme dans les wikis), liens vers <a href="https://hollowknight.wiki" target="_blank" rel="noopener">hollowknight.wiki</a>.
+      Sans sauvegarde, cliquez sur les éléments pour les cocher à la main (enregistré dans ce navigateur).</p>
+  </footer>
+
+  <script src="js/aes.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
