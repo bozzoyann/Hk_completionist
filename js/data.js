@@ -254,19 +254,19 @@
       ],
     },
 
-    /* ----------------------- Not counted in % ----------------------- */
+    /* ------------- Not counted in %, but required to reach 112 % ------------- */
     {
-      id: "counters", title: "Compteurs", extra: true, icon: "∑",
-      desc: "Ne compte pas dans le %, mais utile pour le 112 %.",
+      id: "counters", title: "Prérequis : larves, Essences, stations", extra: true, required: true, icon: "∑",
+      desc: "Ne rapporte pas de % directement, mais indispensable : les 46 larves débloquent la Larve-mouche élégie, 2400 Essences les derniers mots de la Voyante, et toutes les stations la Tanière aux Coléoptères.",
       counters: [
         { id: "grubs", name: "Larves sauvées", max: 46, wiki: "Grub", value: (pd) => pd.grubsCollected || 0 },
         { id: "essence", name: "Essences (paliers de la Voyante)", max: 2400, wiki: "Essence", value: (pd) => pd.dreamOrbs || 0 },
         { id: "stags", name: "Stations de Coléoptère", max: 11, wiki: "Stag_Station", value: (pd) => STAGS.filter((k) => pd[k] === true).length },
-        { id: "roots", name: "Racines de rêve (Whispering Roots)", max: 15, wiki: "Whispering_Root", value: (pd, raw) => countRoots(raw) },
       ],
     },
     {
-      id: "paleore", title: "Minerai pâle", extra: true, icon: "◇",
+      id: "paleore", title: "Minerai pâle", extra: true, required: true, icon: "◇",
+      desc: "Les 6 sont nécessaires pour l'Aiguillon pur (1 + 2 + 3 minerais).",
       items: [
         { id: "ore1", name: "Minerai pâle #1", en: "Pale Ore", hint: "Bassin Ancestral, à gauche de la station du tramway", wiki: "Pale_Ore", check: scene("Battle Scene Ore", "Abyss_17") },
         { id: "ore2", name: "Minerai pâle #2", en: "Pale Ore", hint: "Voyante : 300 Essences", wiki: "Pale_Ore", check: flag("dreamReward3") },
@@ -277,12 +277,28 @@
       ],
     },
     {
-      id: "keys", title: "Clés et objets", extra: true, icon: "⚿",
+      id: "keys", title: "Clés indispensables", extra: true, required: true, icon: "⚿",
+      desc: "Ne rapportent pas de %, mais ouvrent l'accès à des objets qui en rapportent.",
       items: [
-        { id: "hasLantern", name: "Lanterne de Lumafly", en: "Lumafly Lantern", hint: "Sly : 1800 Geo", wiki: "Lumafly_Lantern", check: flag("hasLantern") },
-        { id: "hasShopkeepersKey", name: "Clé du marchand", en: "Shopkeeper's Key", hint: "Mont Cristal", wiki: "Shopkeeper's_Key", check: anyOf(flag("hasSlykey"), flag("gaveSlykey")) },
-        { id: "hasWhiteKey", name: "Clé élégante", en: "Elegant Key", hint: "Sly : 800 Geo", wiki: "Elegant_Key", check: anyOf(flag("hasWhiteKey"), flag("usedWhiteKey")) },
-        { id: "hasLoveKey", name: "Clé de l'amour", en: "Love Key", hint: "Jardins de la Reine", wiki: "Love_Key", check: anyOf(flag("hasLoveKey"), flag("openedLoveDoor")) },
+        { id: "hasLantern", name: "Lanterne de Lumafly", en: "Lumafly Lantern", hint: "Sly : 1800 Geo · éclaire le Sanctuaire de Pierre (éclat de masque, Sans-yeux)", wiki: "Lumafly_Lantern", check: flag("hasLantern") },
+        { id: "hasShopkeepersKey", name: "Clé du marchand", en: "Shopkeeper's Key", hint: "Mont Cristal · débloque la suite de la boutique de Sly (éclats, fragment, Charmes)", wiki: "Shopkeeper's_Key", check: anyOf(flag("hasSlykey"), flag("gaveSlykey")) },
+        { id: "hasWhiteKey", name: "Clé élégante", en: "Elegant Key", hint: "Sly : 800 Geo · nécessaire pour l'Âme d'ombre", wiki: "Elegant_Key", check: anyOf(flag("hasWhiteKey"), flag("usedWhiteKey")) },
+        { id: "hasLoveKey", name: "Clé de l'amour", en: "Love Key", hint: "Jardins de la Reine · ouvre la Tour de l'Amour (Le Collectionneur)", wiki: "Love_Key", check: anyOf(flag("hasLoveKey"), flag("openedLoveDoor")) },
+        {
+          id: "anySimpleKey", name: "Une Clé simple", en: "Simple Key", hint: "Une seule suffit : ouvre la Fosse à Ordures (Syntoniseur Divin)", wiki: "Simple_Key",
+          check: (pd, sc) => pd.slySimpleKey === true || pd.gotLurkerKey === true || pd.hasGodfinder === true || sc("Shiny Item", "Ruins1_17") || sc("Shiny Item Stand", "Abyss_20"),
+        },
+      ],
+    },
+
+    /* ------------------------------ Truly optional ------------------------------ */
+    {
+      id: "others", title: "Autres objets", extra: true, icon: "◌",
+      desc: "Totalement optionnel pour le 112 %.",
+      counters: [
+        { id: "roots", name: "Racines de rêve (Whispering Roots)", max: 15, wiki: "Whispering_Root", value: (pd, raw) => countRoots(raw) },
+      ],
+      items: [
         { id: "slySimpleKey", name: "Clé simple #1", en: "Simple Key", hint: "Sly : 950 Geo", wiki: "Simple_Key", check: flag("slySimpleKey") },
         { id: "key2", name: "Clé simple #2", en: "Simple Key", hint: "Cité des Larmes, sous la station des Entrepôts de la Cité", wiki: "Simple_Key", check: scene("Shiny Item", "Ruins1_17") },
         { id: "key3", name: "Clé simple #3", en: "Simple Key", hint: "Bassin Ancestral, sous l'arène du Vaisseau Brisé", wiki: "Simple_Key", check: scene("Shiny Item Stand", "Abyss_20") },

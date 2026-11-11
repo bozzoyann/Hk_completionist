@@ -27,6 +27,7 @@
     counters: "#a3a9bb",
     paleore: "#dfe7f2",
     keys: "#c9b88f",
+    others: "#8d93a6",
     endgame: "#ffe7a3",
   };
   const DLC = { grimm: "Troupe Grimm", lifeblood: "Lifeblood", godmaster: "Godmaster" };
@@ -34,7 +35,7 @@
   /* ------------------------- Progression order ------------------------- */
   const SECTION_ORDER = ["equipment", "spells", "bosses", "dreamers", "dreamnail", "nail", "nailarts", "charms",
     "masks", "vessels", "warriors", "colosseum", "grimm", "lifeblood", "godmaster",
-    "counters", "paleore", "keys", "endgame"];
+    "counters", "paleore", "keys", "others", "endgame"];
 
   const ITEM_ORDER = {
     bosses: ["falseKnightDefeated", "hornet1Defeated", "bossGruzMother", "bossBroodingMawlek", "defeatedMantisLords",
@@ -239,6 +240,7 @@
   Z("abyss", "gotCharm_9 hasShadowDash scream2 gotShadeCharm");
   Z("colosseum", "colosseumBronzeCompleted colosseumSilverCompleted colosseumGoldCompleted ore6 gotLurkerKey");
   Z("palace", "gotCharm_36");
+  Z("waterways", "anySimpleKey");
   Z("godhome", "hasGodfinder pantheon1 pantheon2 pantheon3 pantheon4 pantheon5");
 
   global.HKExtras = { COLORS, TREE, ZONES, computeStats, MAP_ZONES, MAP_LINKS, ITEM_ZONE };

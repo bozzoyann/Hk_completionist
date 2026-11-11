@@ -12,7 +12,8 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
   - Masques 4, Réceptacles 3, Aiguillon des rêves 3, Guerriers 7, Rêveurs 3, Colisée 3
   - DLC : Troupe Grimm 2, Lifeblood 1, Godmaster 5 (les 40 charmes sont tous dans la section Charmes, 40 %)
 - Affiche aussi le % enregistré par le jeu, le temps de jeu et le Géo.
-- Sections hors % : larves, essence, stations du Cerf, racines murmurantes, minerai pâle, clés, boss optionnels et fins.
+- Prérequis du 112 % (ne rapportent pas de % mais sont indispensables) : 46 larves, 2400 Essences, stations de Coléoptère, 6 minerais pâles et clés nécessaires.
+- Vraiment optionnel : clés simples en trop, laissez-passer de tramway, racines de rêve, boss optionnels et fins.
 - **Suivi en direct** (Chrome/Edge) : la page relit la sauvegarde toutes les 3 s et met en évidence les nouveaux objets.
 - Recherche, filtres (tout / manquants / obtenus), indices masquables, sections repliables.
 - Noms officiels de la version française du jeu, avec le nom anglais en dessous (masquable).
@@ -22,7 +23,7 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 - **Statistiques** : masques, réceptacles, emplacements de charme, position et Geo de l'ombre, Journal du chasseur, salles visitées, reliques, charmes équipés… (le jeu n'enregistre pas le nombre de morts).
 - Objets et catégories rangés dans l'ordre de progression habituel.
 - **Nouveautés** : en rechargeant une sauvegarde, un encadré liste ce qui a été obtenu depuis la précédente, avec le % gagné.
-- Filtre « Objets optionnels » pour masquer tout ce qui ne compte pas dans les 112 %.
+- Filtre « Objets optionnels » pour masquer ce qui n'est pas nécessaire au 112 % (les prérequis restent affichés).
 - Fond animé (particules d'âme, lumaflies, brume), désactivé si le système demande moins d'animations.
 - Logo : déposez une image `img/logo.png` pour remplacer le logo dessiné.
 - Mode manuel sans sauvegarde : les cases cochées sont gardées dans le `localStorage`.

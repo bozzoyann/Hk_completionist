@@ -201,7 +201,7 @@
     document.body.classList.toggle("no-english", !state.english);
 
     for (const section of SECTIONS) {
-      if (section.extra && !state.optional) continue;
+      if (section.extra && !section.required && !state.optional) continue;
       const card = document.createElement("section");
       card.className = "card" + (section.extra ? " extra" : "") + (section.dlc ? " dlc dlc-" + section.id : "");
       card.style.setProperty("--c", section.color);
@@ -268,7 +268,7 @@
           </div>
           <div class="sec-score">
             ${section.items ? `<b>${doneCount}/${count}</b>` : ""}
-            ${section.extra ? `<small>hors %</small>` : `<small>${pct} / ${section.max} %</small>`}
+            ${section.extra ? `<small>${section.required ? "requis" : "hors %"}</small>` : `<small>${pct} / ${section.max} %</small>`}
           </div>
           <span class="chev" aria-hidden="true">▾</span>
         </header>
@@ -339,7 +339,7 @@
     const n = state.news;
     if (!n || !n.items || !n.items.length) { box.hidden = true; return; }
     const entries = n.items.map(findSection).filter(Boolean)
-      .filter((e) => state.optional || !e.section.extra);
+      .filter((e) => state.optional || !e.section.extra || e.section.required);
     const gain = n.pctTo - n.pctFrom;
     const when = new Date(n.at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
     box.hidden = false;
@@ -460,7 +460,7 @@
   function zoneItems(zoneId) {
     const out = [];
     for (const s of SECTIONS) {
-      if (s.extra && !state.optional) continue;
+      if (s.extra && !s.required && !state.optional) continue;
       for (const it of s.items || []) {
         if (ITEM_ZONE[it.id] === zoneId) out.push({ item: it, section: s });
       }
