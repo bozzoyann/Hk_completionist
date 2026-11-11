@@ -352,7 +352,8 @@
     const acts = [
       { label: "Début", from: 0, to: 2 },
       { label: "Milieu", from: 3, to: 6 },
-      { label: "Fin de partie", from: 7, to: rows - 1 },
+      { label: "Late game", from: 7, to: 8 },
+      { label: "Fin de partie", from: 9, to: rows - 1 },
     ];
     let bands = "";
     acts.forEach((a, i) => {
@@ -396,7 +397,7 @@
           <div><small>Emplacements de Charme</small><div class="pips">${pips(st.charmSlots, 11, "notch")}</div></div>
         </div>
         <div class="shade ${st.shadeZone ? "" : "none"}">
-          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 6c-2 10 0 18 6 22-4 2-8 8-8 16 0 10 7 16 16 16s16-6 16-16c0-8-4-14-8-16 6-4 8-12 6-22-4 6-8 10-14 10S22 12 18 6z"/><ellipse cx="25" cy="42" rx="4" ry="6"/><ellipse cx="39" cy="42" rx="4" ry="6"/></svg>
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18.2 31 C10 25.5 7.6 14.5 11.2 2.8 C13.4 11 17.4 18.4 24.6 23.9 C27 23.2 29.5 22.8 32 22.8 C34.5 22.8 37 23.2 39.4 23.9 C46.6 18.4 50.6 11 52.8 2.8 C56.4 14.5 54 25.5 45.8 31 C47.2 33.7 48 36.8 48 40 C48 50.5 40.8 58.5 32 58.5 C23.2 58.5 16 50.5 16 40 C16 36.8 16.8 33.7 18.2 31 Z"/><g class="eyes"><ellipse cx="25.4" cy="41.5" rx="4.4" ry="7.2"/><ellipse cx="38.6" cy="41.5" rx="4.4" ry="7.2"/></g></svg>
           <div>
             <small>Votre ombre</small>
             ${st.shadeZone ? `<strong>${esc(st.shadeZone)}</strong><em>${fmt(st.shadeGeo)} Geo à récupérer</em>` : `<strong>Aucune ombre</strong><em>Vous n'avez rien perdu</em>`}
