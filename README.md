@@ -15,6 +15,7 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 - Sections hors % : larves, essence, stations du Cerf, racines murmurantes, minerai pâle, clés, boss optionnels et fins.
 - **Suivi en direct** (Chrome/Edge) : la page relit la sauvegarde toutes les 3 s et met en évidence les nouveaux objets.
 - Recherche, filtres (tout / manquants / obtenus), indices masquables, sections repliables.
+- Noms officiels de la version française du jeu, avec le nom anglais en dessous (masquable).
 - Mode manuel sans sauvegarde : les cases cochées sont gardées dans le `localStorage`.
 
 ## Emplacement des sauvegardes

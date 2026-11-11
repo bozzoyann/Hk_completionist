@@ -19,6 +19,7 @@
     save: LS.get("hk.save", null), // { done: [...ids], counters: {...}, meta: {...} }
     filter: LS.get("hk.filter", "all"),
     spoilers: LS.get("hk.spoilers", true),
+    english: LS.get("hk.english", true),
     collapsed: new Set(LS.get("hk.collapsed", [])),
     query: "",
     fresh: new Set(), // ids newly obtained since previous load (for highlight)
@@ -147,6 +148,7 @@
     root.innerHTML = "";
     let total = 0;
     document.body.classList.toggle("no-spoilers", !state.spoilers);
+    document.body.classList.toggle("no-english", !state.english);
 
     for (const section of SECTIONS) {
       const card = document.createElement("section");
@@ -165,7 +167,7 @@
           const done = isDone(item.id);
           if (done) doneCount++;
           const show = (state.filter === "all" || (state.filter === "done") === done) &&
-            matches(item.name + " " + (item.hint || "") + " " + section.title);
+            matches(item.name + " " + (item.en || "") + " " + (item.hint || "") + " " + section.title);
           if (!show) continue;
           visible++;
           body += `
@@ -174,7 +176,7 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
               </button>
               <div class="item-text">
-                <span class="name">${esc(item.name)}</span>
+                <span class="name">${esc(item.name)}${item.en && item.en !== item.name ? ` <span class="en">${esc(item.en)}</span>` : ""}</span>
                 ${item.hint ? `<span class="hint">${esc(item.hint)}</span>` : ""}
               </div>
               ${item.wiki ? `<a class="wiki" href="${wikiUrl(item.wiki)}" target="_blank" rel="noopener" title="Ouvrir le wiki">wiki ↗</a>` : ""}
@@ -352,6 +354,14 @@
 
   $("#search").addEventListener("input", (e) => {
     state.query = e.target.value.trim().toLowerCase();
+    render();
+  });
+
+  const english = $("#english");
+  english.checked = state.english;
+  english.addEventListener("change", () => {
+    state.english = english.checked;
+    LS.set("hk.english", state.english);
     render();
   });
 
