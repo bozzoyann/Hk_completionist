@@ -8,9 +8,9 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 
 - Lecture des sauvegardes PC/Mac/Linux (en-tête .NET BinaryFormatter + base64 + AES-256-ECB) et des sauvegardes JSON en clair.
 - Calcul du % par catégorie, avec le même barème que le jeu :
-  - Boss 14, Charmes 36, Équipement 14, Clou 4, Arts du clou 3, Sorts 6
+  - Boss 14, Charmes 40, Équipement 14, Clou 4, Arts du clou 3, Sorts 6
   - Masques 4, Réceptacles 3, Aiguillon des rêves 3, Guerriers 7, Rêveurs 3, Colisée 3
-  - DLC : Troupe Grimm 6, Lifeblood 1, Godmaster 5
+  - DLC : Troupe Grimm 2, Lifeblood 1, Godmaster 5 (les 40 charmes sont tous dans la section Charmes, 40 %)
 - Affiche aussi le % enregistré par le jeu, le temps de jeu et le Géo.
 - Sections hors % : larves, essence, stations du Cerf, racines murmurantes, minerai pâle, clés, boss optionnels et fins.
 - **Suivi en direct** (Chrome/Edge) : la page relit la sauvegarde toutes les 3 s et met en évidence les nouveaux objets.
@@ -21,6 +21,10 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 - **Arbre de progression** : les grandes étapes de la partie reliées par leurs prérequis, avec les prochains objectifs accessibles.
 - **Statistiques** : masques, réceptacles, emplacements de charme, position et Geo de l'ombre, Journal du chasseur, salles visitées, reliques, charmes équipés… (le jeu n'enregistre pas le nombre de morts).
 - Objets et catégories rangés dans l'ordre de progression habituel.
+- **Nouveautés** : en rechargeant une sauvegarde, un encadré liste ce qui a été obtenu depuis la précédente, avec le % gagné.
+- Filtre « Objets optionnels » pour masquer tout ce qui ne compte pas dans les 112 %.
+- Fond animé (particules d'âme, lumaflies, brume), désactivé si le système demande moins d'animations.
+- Logo : déposez une image `img/logo.png` pour remplacer le logo dessiné.
 - Mode manuel sans sauvegarde : les cases cochées sont gardées dans le `localStorage`.
 
 ## Emplacement des sauvegardes
@@ -48,6 +52,7 @@ Pour le déployer, activez GitHub Pages sur la branche, dossier racine.
 - `js/save.js` : décodage du fichier de sauvegarde
 - `js/data.js` : liste des objets, champs de la save, indices et barème
 - `js/extras.js` : couleurs, ordre de progression, arbre et statistiques
+- `js/background.js` : fond animé
 - `js/app.js` : interface (chargement, rendu, filtres, suivi en direct)
 
 Projet de fan, non affilié à Team Cherry.

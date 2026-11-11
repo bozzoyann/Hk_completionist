@@ -12,9 +12,11 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <canvas id="bg" aria-hidden="true"></canvas>
   <header class="hero">
     <div class="wrap hero-inner">
       <div class="brand">
+        <img class="logo logo-img" src="img/logo.png" alt="" hidden onload="this.hidden=false;var s=this.nextElementSibling;if(s)s.remove();">
         <svg class="logo" viewBox="0 0 96 96" aria-hidden="true">
   <defs>
     <radialGradient id="logo-bgG" cx="50%" cy="38%" r="62%"><stop offset="0" stop-color="#26304d"/><stop offset=".7" stop-color="#121624"/><stop offset="1" stop-color="#0b0d14"/></radialGradient>
@@ -90,6 +92,8 @@
       </div>
     </section>
 
+    <section class="news" id="news" hidden aria-live="polite"></section>
+
     <section class="overview" id="overview" aria-label="Les 112 %">
       <div class="overview-head">
         <h2>Les 112 cases</h2>
@@ -104,6 +108,7 @@
       <button role="tab" data-tab="map">⌖ Carte d'Hallownest</button>
       <button role="tab" data-tab="tree">⟡ Arbre de progression</button>
       <button role="tab" data-tab="stats">∑ Statistiques</button>
+      <label class="toggle opt-toggle" title="Larves, minerai pâle, clés, boss optionnels et fins : tout ce qui ne compte pas dans les 112 %"><input type="checkbox" id="optional" checked> Objets optionnels</label>
     </div>
 
     <section class="panel" id="panel-list">
@@ -163,5 +168,6 @@
   <script src="js/data.js"></script>
   <script src="js/extras.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/background.js"></script>
 </body>
 </html>

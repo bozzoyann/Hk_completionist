@@ -23,6 +23,8 @@
     english: LS.get("hk.english", true),
     tab: LS.get("hk.tab", "list"),
     mapZone: LS.get("hk.mapZone", null),
+    optional: LS.get("hk.optional", true),
+    news: LS.get("hk.news", null), // { items: [ids], pctFrom, pctTo, timeDelta, at, fileName }
     collapsed: new Set(LS.get("hk.collapsed", [])),
     query: "",
     fresh: new Set(), // ids newly obtained since previous load (for highlight)
@@ -77,13 +79,29 @@
       if (!raw || !(raw.playerData || raw.geo !== undefined)) throw new Error("ce fichier ne ressemble pas à une sauvegarde Hollow Knight");
       const result = evaluate(raw);
       result.meta.fileName = label;
-      const sameFile = state.save && state.save.meta && state.save.meta.fileName === label;
-      const prev = sameFile ? new Set(state.save.done) : null;
-      state.fresh = new Set(prev ? result.done.filter((id) => !prev.has(id)) : []);
+      // Compare with the previous load of the same file, or else the last loaded save.
+      const history = LS.get("hk.history", {});
+      const before = history[label] || state.save;
+      const prev = before ? new Set(before.done) : null;
+      const newIds = prev ? result.done.filter((id) => !prev.has(id)) : [];
+      state.fresh = new Set(newIds);
+      if (prev && newIds.length) {
+        state.news = {
+          items: newIds,
+          pctFrom: totalPercent(before),
+          pctTo: totalPercent(result),
+          timeDelta: Math.max(0, (result.meta.playTime || 0) - ((before.meta && before.meta.playTime) || 0)),
+          at: Date.now(),
+          fileName: label,
+        };
+        LS.set("hk.news", state.news);
+      }
+      history[label] = { done: result.done, meta: result.meta, pctOverride: result.pctOverride };
+      LS.set("hk.history", history);
       state.save = result;
       LS.set("hk.save", result);
       setStatus(`✔ ${label} chargé (version ${result.meta.version}) à ${new Date().toLocaleTimeString("fr-FR")}` +
-        (state.fresh.size && prev ? ` · ${state.fresh.size} nouveauté(s) !` : ""), "ok");
+        (newIds.length ? ` · ${newIds.length} nouveauté(s) !` : prev ? " · rien de nouveau depuis la dernière fois" : ""), "ok");
       render();
     } catch (err) {
       console.error(err);
@@ -135,6 +153,18 @@
 
   /* -------------------------------- Rendering ------------------------------- */
 
+  // Total % for any stored save result (used to compare two saves).
+  function totalPercent(save) {
+    const done = new Set(save.done || []);
+    let total = 0;
+    for (const section of SECTIONS) {
+      if (section.extra) continue;
+      const o = save.pctOverride && save.pctOverride[section.id];
+      total += o !== undefined ? o : sectionPercent(section, (section.items || []).filter((it) => done.has(it.id)).length);
+    }
+    return total;
+  }
+
   // Use the game's own value when the save provides one (masks / soul vessels).
   function sectionPct(section, doneCount) {
     const o = state.save && state.save.pctOverride;
@@ -171,6 +201,7 @@
     document.body.classList.toggle("no-english", !state.english);
 
     for (const section of SECTIONS) {
+      if (section.extra && !state.optional) continue;
       const card = document.createElement("section");
       card.className = "card" + (section.extra ? " extra" : "") + (section.dlc ? " dlc dlc-" + section.id : "");
       card.style.setProperty("--c", section.color);
@@ -264,7 +295,9 @@
     }
 
     renderGrid();
+    renderNews();
     renderTabs();
+    $("#optional").checked = state.optional;
     if (state.tab === "tree") renderTree();
     if (state.tab === "stats") renderStats();
     if (state.tab === "map") renderMap();
@@ -292,6 +325,37 @@
     }
     grid.innerHTML = cells;
     legend.innerHTML = leg;
+  }
+
+  /* ---------------------------------- News ---------------------------------- */
+
+  function findSection(id) {
+    for (const s of SECTIONS) for (const it of s.items || []) if (it.id === id) return { item: it, section: s };
+    return null;
+  }
+
+  function renderNews() {
+    const box = $("#news");
+    const n = state.news;
+    if (!n || !n.items || !n.items.length) { box.hidden = true; return; }
+    const entries = n.items.map(findSection).filter(Boolean)
+      .filter((e) => state.optional || !e.section.extra);
+    const gain = n.pctTo - n.pctFrom;
+    const when = new Date(n.at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+    box.hidden = false;
+    box.innerHTML = `
+      <div class="news-head">
+        <div>
+          <span class="news-kicker">Nouveautés</span>
+          <h2>${n.items.length} nouvel${n.items.length > 1 ? "s" : ""} objet${n.items.length > 1 ? "s" : ""} depuis la sauvegarde précédente</h2>
+          <p class="small muted">${esc(n.fileName)} · chargé le ${when}${n.timeDelta ? ` · ${fmtTime(n.timeDelta)} de jeu en plus` : ""}</p>
+        </div>
+        <div class="news-gain${gain > 0 ? "" : " zero"}"><strong>${gain > 0 ? "+" + gain : gain} %</strong><small>${n.pctFrom} → ${n.pctTo} %</small></div>
+        <button class="news-close" id="newsClose" aria-label="Masquer les nouveautés">✕</button>
+      </div>
+      <ul class="news-list">
+        ${entries.map((e) => `<li style="--c:${e.section.color}"><button data-sec="${e.section.id}" data-item="${e.item.id}"><i></i><b>${esc(e.item.name.replace(/^#\d+ /, ""))}</b><small>${esc(e.section.title.replace(/^DLC : /, ""))}</small></button></li>`).join("")}
+      </ul>`;
   }
 
   /* ---------------------------------- Tabs ---------------------------------- */
@@ -396,6 +460,7 @@
   function zoneItems(zoneId) {
     const out = [];
     for (const s of SECTIONS) {
+      if (s.extra && !state.optional) continue;
       for (const it of s.items || []) {
         if (ITEM_ZONE[it.id] === zoneId) out.push({ item: it, section: s });
       }
@@ -604,7 +669,10 @@
     if (state.save) {
       state.save = null;
       state.fresh.clear();
+      state.news = null;
       LS.del("hk.save");
+      LS.del("hk.news");
+      LS.del("hk.history");
       stopWatching();
       setStatus("Sauvegarde retirée. Mode manuel.", "");
     } else {
@@ -682,6 +750,23 @@
       const again = document.querySelector(`[data-zone="${state.mapZone}"]`);
       if (again) again.focus();
     }
+  });
+
+  $("#news").addEventListener("click", (e) => {
+    if (e.target.closest("#newsClose")) {
+      state.news = null;
+      LS.del("hk.news");
+      renderNews();
+      return;
+    }
+    const b = e.target.closest("[data-sec]");
+    if (b) goToSection(b.dataset.sec);
+  });
+
+  $("#optional").addEventListener("change", (e) => {
+    state.optional = e.target.checked;
+    LS.set("hk.optional", state.optional);
+    render();
   });
 
   $("#overview").addEventListener("click", (e) => {

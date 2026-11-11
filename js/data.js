@@ -47,8 +47,8 @@
       ],
     },
     {
-      id: "charms", title: "Charmes", max: 36, icon: "✦",
-      desc: "Chaque Charme rapporte 1 %. Les 4 Charmes de la Troupe Grimm sont comptés plus bas. Les Charmes fragiles comptent une seule fois.",
+      id: "charms", title: "Charmes", max: 40, icon: "✦",
+      desc: "Chaque Charme rapporte 1 %. Les Charmes fragiles comptent une seule fois.",
       items: [
         charm(1, "Essaim cueilleur", "Gathering Swarm", "Sly : 300 Geo"),
         charm(2, "Boussole murmurante", "Wayward Compass", "Iselda : 220 Geo"),
@@ -89,6 +89,13 @@
           id: "gotCharm_36", name: "#36 Âme-royale (2 Fragments blancs)", en: "Kingsoul", wiki: "Kingsoul",
           hint: "Dame Blanche (Jardins de la Reine) + Palais Blanc",
           check: (pd) => pd.royalCharmState > 2,
+        },
+        charm(37, "Maître de la vitesse", "Sprintmaster", "Sly : 400 Geo + Clé du marchand"),
+        charm(38, "Bouclier éthéré", "Dreamshield", "Repos Éternel, à gauche sous la Voyante"),
+        charm(39, "Chant du Tisserand", "Weaversong", "Nid-profond : Tanière du Tisserand"),
+        {
+          id: "gotCharm_40", name: "#40 L'Héritier de Grimm / Mélodie Insouciante", en: "Grimmchild / Carefree Melody", hint: "Dirtmouth, après avoir allumé la lanterne des Falaises Hurlantes", wiki: "Grimmchild",
+          check: (pd) => pd.gotCharm_40 === true,
         },
       ],
     },
@@ -219,16 +226,9 @@
       ],
     },
     {
-      id: "grimm", title: "DLC : La Troupe Grimm", max: 6, icon: "♨",
-      desc: "4 Charmes + Grimm + le choix final (Rituel ou bannissement).",
+      id: "grimm", title: "DLC : La Troupe Grimm", max: 2, icon: "♨",
+      desc: "Grimm et le choix final : le Rituel ou le bannissement.",
       items: [
-        charm(37, "Maître de la vitesse", "Sprintmaster", "Sly : 400 Geo + Clé du marchand"),
-        charm(38, "Bouclier éthéré", "Dreamshield", "Repos Éternel, à gauche sous la Voyante"),
-        charm(39, "Chant du Tisserand", "Weaversong", "Nid-profond : Tanière du Tisserand"),
-        {
-          id: "gotCharm_40", name: "#40 L'Héritier de Grimm / Mélodie Insouciante", en: "Grimmchild / Carefree Melody", hint: "Dirtmouth, après avoir allumé la lanterne des Falaises Hurlantes", wiki: "Grimmchild",
-          check: (pd) => pd.gotCharm_40 === true,
-        },
         { id: "killedGrimm", name: "Maître de la troupe Grimm", en: "Troupe Master Grimm", hint: "Dirtmouth : après 6 flammes", wiki: "Grimm", check: flag("killedGrimm") },
         {
           id: "grimmChildLevel", name: "Roi des cauchemars Grimm ou bannissement", en: "Nightmare King Grimm / Banishment", hint: "Un seul choix possible par partie", wiki: "Nightmare_King_Grimm",
