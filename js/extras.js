@@ -182,5 +182,64 @@
     };
   }
 
-  global.HKExtras = { COLORS, TREE, ZONES, computeStats };
+
+  /* --------------------------- Hallownest map --------------------------- */
+  // Schematic layout (not the official map): rough relative positions of areas.
+  // x, y, w, h in a 1000 x 700 view box.
+  const MAP_ZONES = [
+    { id: "cliffs", name: "Falaises Hurlantes", x: 30, y: 30, w: 200, h: 100 },
+    { id: "dirtmouth", name: "Dirtmouth", sub: "et la Passe du Roi", x: 250, y: 14, w: 190, h: 90 },
+    { id: "peak", name: "Mont Cristal", x: 460, y: 20, w: 220, h: 112 },
+    { id: "colosseum", name: "Colisée des Fous", x: 700, y: 20, w: 120, h: 88 },
+    { id: "edge", name: "Frontières du Royaume", x: 840, y: 20, w: 140, h: 360 },
+    { id: "greenpath", name: "Vertchemin", x: 30, y: 150, w: 210, h: 120 },
+    { id: "crossroads", name: "Routes Oubliées", x: 260, y: 120, w: 250, h: 120 },
+    { id: "resting", name: "Repos Éternel", x: 530, y: 152, w: 150, h: 96 },
+    { id: "fog", name: "Brumes-canyon", x: 260, y: 260, w: 170, h: 92 },
+    { id: "gardens", name: "Jardins de la Reine", x: 30, y: 290, w: 210, h: 118 },
+    { id: "city", name: "Cité des Larmes", x: 450, y: 268, w: 260, h: 150 },
+    { id: "hive", name: "La Ruche", x: 730, y: 400, w: 160, h: 92 },
+    { id: "fungal", name: "Caverne Nocive", x: 250, y: 372, w: 180, h: 118 },
+    { id: "waterways", name: "Voies d'Eau Royales", x: 450, y: 438, w: 260, h: 84 },
+    { id: "deepnest", name: "Nid-profond", x: 30, y: 428, w: 200, h: 170 },
+    { id: "basin", name: "Bassin Ancestral", x: 250, y: 510, w: 320, h: 82 },
+    { id: "abyss", name: "Les Abysses", x: 290, y: 612, w: 260, h: 70 },
+    { id: "palace", name: "Palais Blanc", sub: "royaume des rêves", x: 600, y: 540, w: 170, h: 92, dream: true },
+    { id: "godhome", name: "Maison des Dieux", sub: "royaume des rêves", x: 790, y: 540, w: 190, h: 92, dream: true },
+  ];
+
+  // Passages between areas, drawn as faint tunnels.
+  const MAP_LINKS = [
+    ["cliffs", "dirtmouth"], ["dirtmouth", "crossroads"], ["dirtmouth", "peak"], ["cliffs", "greenpath"],
+    ["greenpath", "crossroads"], ["crossroads", "resting"], ["peak", "resting"], ["crossroads", "fog"],
+    ["greenpath", "gardens"], ["fog", "gardens"], ["fog", "fungal"], ["fog", "city"], ["crossroads", "city"],
+    ["resting", "city"], ["city", "edge"], ["peak", "colosseum"], ["colosseum", "edge"], ["edge", "hive"],
+    ["fungal", "deepnest"], ["gardens", "deepnest"], ["fungal", "city"], ["city", "waterways"], ["waterways", "edge"],
+    ["deepnest", "basin"], ["fungal", "basin"], ["waterways", "basin"], ["basin", "abyss"], ["basin", "palace"],
+    ["waterways", "godhome"],
+  ];
+
+  const Z = (zone, ids) => ids.split(" ").forEach((id) => { ITEM_ZONE[id] = zone; });
+  const ITEM_ZONE = {};
+  Z("crossroads", "bossGruzMother falseKnightDefeated bossBroodingMawlek gotCharm_3 gotCharm_7 gotCharm_8 gotCharm_14 gotCharm_18 gotCharm_19 gotCharm_20 gotCharm_22 gotCharm_35 fireball1 ms_Crossroads_13 ms_Crossroads_09 ms_Crossroads_38 vf_Crossroads_37 ore5 falseKnightDreamDefeated killedHollowKnight killedFinalBoss");
+  Z("dirtmouth", "gotCharm_1 gotCharm_2 gotCharm_4 gotCharm_6 gotCharm_15 gotCharm_26 slyShellFrag1 slyShellFrag2 slyShellFrag3 slyShellFrag4 ms_Room_Bretta slyVesselFrag1 slyVesselFrag2 gotCharm_37 gotCharm_40 killedGrimm grimmChildLevel hasLantern hasWhiteKey slySimpleKey greyPrinceDefeated");
+  Z("greenpath", "hornet1Defeated gotCharm_12 gotCharm_28 hasDash hasDashSlash ms_Fungus1_36 vf_Fungus1_13 noEyesDefeated");
+  Z("fungal", "defeatedMantisLords gotCharm_13 gotCharm_17 gotCharm_23 gotCharm_24 gotCharm_25 gotCharm_31 hasWalljump ms_Fungus2_01 elderHuDefeated");
+  Z("city", "mageLordDefeated collectorDefeated killedBlackKnight gotCharm_33 nail1 nail2 nail3 nail4 fireball2 quake1 vf_Ruins2_09 lurienDefeated key2 mageLordDreamDefeated");
+  Z("waterways", "defeatedDungDefender gotCharm_10 gotCharm_11 hasAcidArmour ms_Waterways_04b whiteDefenderDefeated");
+  Z("deepnest", "killedMimicSpider gotCharm_16 ms_Fungus2_25 vf_Deepnest_38 galienDefeated hegemolDefeated gotCharm_39 ore4 hasTramPass");
+  Z("basin", "killedInfectedKnight hasDoubleJump vf_Abyss_04 ore1 key3 infectedKnightDreamDefeated");
+  Z("fog", "defeatedMegaJelly scream1 monomonDefeated");
+  Z("edge", "hornetOutskirtsDefeated gotCharm_32 hasKingsBrand hasUpwardSlash markothDefeated");
+  Z("gardens", "killedTraitorLord mumCaterpillarDefeated hasLoveKey");
+  Z("cliffs", "gotCharm_5 gotCharm_27 hasCyclone vesselFragStagNest aladarSlugDefeated");
+  Z("peak", "gotCharm_34 hasSuperDash quake2 ms_Mines_32 ore3 hasShopkeepersKey");
+  Z("resting", "gotCharm_21 gotCharm_30 dreamReward7 ms_Room_Mansion dreamReward5 hasDreamNail dreamNailUpgraded mothDeparted xeroDefeated gotCharm_38 ore2");
+  Z("hive", "gotCharm_29 ms_Hive_04 killedHiveKnight");
+  Z("abyss", "gotCharm_9 hasShadowDash scream2 gotShadeCharm");
+  Z("colosseum", "colosseumBronzeCompleted colosseumSilverCompleted colosseumGoldCompleted ore6 gotLurkerKey");
+  Z("palace", "gotCharm_36");
+  Z("godhome", "hasGodfinder pantheon1 pantheon2 pantheon3 pantheon4 pantheon5");
+
+  global.HKExtras = { COLORS, TREE, ZONES, computeStats, MAP_ZONES, MAP_LINKS, ITEM_ZONE };
 })(typeof window !== "undefined" ? window : globalThis);

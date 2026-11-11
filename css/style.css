@@ -40,7 +40,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 .hero { padding: 36px 0 24px; border-bottom: 1px solid var(--line); }
 .hero-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.logo { width: 60px; height: 60px; flex: none; filter: drop-shadow(0 0 14px rgba(159, 180, 255, .35)); }
+.logo { width: 88px; height: 88px; flex: none; overflow: visible; filter: drop-shadow(0 0 16px rgba(111, 134, 214, .35)); }
 h1 { font-family: "Cinzel", serif; font-weight: 700; font-size: clamp(24px, 4vw, 36px); margin: 0; letter-spacing: .02em; line-height: 1.1; }
 h1 span { color: var(--accent); font-weight: 500; }
 .tagline { margin: 6px 0 0; color: var(--muted); }
@@ -347,3 +347,48 @@ h1 span { color: var(--accent); font-weight: 500; }
 .equipped div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .equipped span:not(.muted) { background: color-mix(in srgb, #b79cff 18%, var(--card-2)); color: #d8c9ff; padding: 4px 10px; border-radius: 999px; font-size: 13px; }
 @media (max-width: 760px) { .stat-hero { grid-template-columns: 1fr; } }
+
+/* =================================== Map =================================== */
+.map-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
+.map-scroll {
+  overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius);
+  background: radial-gradient(900px 500px at 40% 30%, #161c30, transparent 70%), var(--bg-2);
+}
+#map svg { display: block; width: 100%; min-width: 700px; height: auto; }
+.tunnel { stroke: #232a3e; stroke-width: 10; stroke-linecap: round; }
+.tunnel.lit { stroke: #2c3658; }
+.zone { cursor: pointer; outline: none; }
+.zone-bg { fill: #121624; stroke: color-mix(in srgb, var(--zc) 55%, transparent); stroke-width: 1.5; transition: stroke .2s; }
+.zone-fill { fill: var(--zc); transition: opacity .4s; }
+.zone.dream .zone-bg { stroke-dasharray: 6 5; fill: #151327; }
+.zone-name { fill: var(--text); font: 600 15px "Cinzel", serif; pointer-events: none; }
+.zone-sub { fill: var(--muted); font: 400 11px "Inter", sans-serif; font-style: italic; pointer-events: none; }
+.zone-pct { fill: var(--zc); font: 700 18px "Inter", sans-serif; pointer-events: none; }
+.zone-count { fill: var(--muted); font: 500 12px "Inter", sans-serif; pointer-events: none; }
+.zone-track { fill: rgba(255, 255, 255, .08); }
+.zone-bar { fill: var(--zc); }
+.zone:hover .zone-bg, .zone:focus-visible .zone-bg { stroke: var(--text); }
+.zone.sel .zone-bg { stroke: var(--text); stroke-width: 2.5; }
+.zone.full .zone-bg { filter: drop-shadow(0 0 10px rgba(243, 198, 90, .45)); }
+
+.zone-detail {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto;
+}
+.zd-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.zd-head h3 { font-family: "Cinzel", serif; margin: 0; font-size: 19px; }
+.zd-head strong { color: var(--zc); font-variant-numeric: tabular-nums; }
+.zone-detail h4 { margin: 14px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.zone-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.zone-items li { display: flex; gap: 10px; align-items: flex-start; padding: 6px 4px; border-radius: 8px; }
+.zone-items li div { display: flex; flex-direction: column; min-width: 0; }
+.zone-items li small { color: var(--muted); font-size: 12px; }
+.zone-items li.done b { color: var(--muted); font-weight: 500; }
+.zi-dot { width: 10px; height: 10px; margin-top: 5px; border-radius: 50%; flex: none; border: 2px solid var(--c); }
+.zone-items li.done .zi-dot { background: var(--c); }
+.zd-done { color: #f3c65a; font-family: "Cinzel", serif; margin: 12px 0 0; }
+@media (max-width: 900px) {
+  .map-layout { grid-template-columns: 1fr; }
+  .zone-detail { position: static; max-height: none; }
+}
+@media (max-width: 760px) { .logo { width: 60px; height: 60px; } }

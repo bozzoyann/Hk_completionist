@@ -8,20 +8,38 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="icon" href="data:image/svg+xml,<svg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'><path%20fill='%23e9e6dc'%20d='M18.2%2031%20C10%2025.5%207.6%2014.5%2011.2%202.8%20C13.4%2011%2017.4%2018.4%2024.6%2023.9%20C27%2023.2%2029.5%2022.8%2032%2022.8%20C34.5%2022.8%2037%2023.2%2039.4%2023.9%20C46.6%2018.4%2050.6%2011%2052.8%202.8%20C56.4%2014.5%2054%2025.5%2045.8%2031%20C47.2%2033.7%2048%2036.8%2048%2040%20C48%2050.5%2040.8%2058.5%2032%2058.5%20C23.2%2058.5%2016%2050.5%2016%2040%20C16%2036.8%2016.8%2033.7%2018.2%2031%20Z'/><g%20fill='%230a0c12'><ellipse%20cx='25.4'%20cy='41.5'%20rx='4.4'%20ry='7.2'/><ellipse%20cx='38.6'%20cy='41.5'%20rx='4.4'%20ry='7.2'/></g></svg>">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <header class="hero">
     <div class="wrap hero-inner">
       <div class="brand">
-        <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
-          <defs>
-            <radialGradient id="maskShine" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c9cfde"/></radialGradient>
-          </defs>
-          <path fill="url(#maskShine)" d="M18.2 31 C10 25.5 7.6 14.5 11.2 2.8 C13.4 11 17.4 18.4 24.6 23.9 C27 23.2 29.5 22.8 32 22.8 C34.5 22.8 37 23.2 39.4 23.9 C46.6 18.4 50.6 11 52.8 2.8 C56.4 14.5 54 25.5 45.8 31 C47.2 33.7 48 36.8 48 40 C48 50.5 40.8 58.5 32 58.5 C23.2 58.5 16 50.5 16 40 C16 36.8 16.8 33.7 18.2 31 Z"/>
-          <g fill="var(--bg)"><ellipse cx="25.4" cy="41.5" rx="4.4" ry="7.2"/><ellipse cx="38.6" cy="41.5" rx="4.4" ry="7.2"/></g>
-        </svg>
+        <svg class="logo" viewBox="0 0 96 96" aria-hidden="true">
+  <defs>
+    <radialGradient id="logo-bgG" cx="50%" cy="38%" r="62%"><stop offset="0" stop-color="#26304d"/><stop offset=".7" stop-color="#121624"/><stop offset="1" stop-color="#0b0d14"/></radialGradient>
+    <linearGradient id="logo-ringG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe6ff"/><stop offset="1" stop-color="#6f86d6"/></linearGradient>
+    <radialGradient id="logo-maskG" cx="45%" cy="35%" r="75%"><stop offset="0" stop-color="#ffffff"/><stop offset=".65" stop-color="#e7e9f1"/><stop offset="1" stop-color="#aeb6cc"/></radialGradient>
+    <linearGradient id="logo-cloakG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3150"/><stop offset="1" stop-color="#151a2b"/></linearGradient>
+    <clipPath id="logo-disc"><circle cx="48" cy="54" r="38"/></clipPath>
+  </defs>
+  <circle cx="48" cy="54" r="38" fill="url(#logo-bgG)"/>
+  <g clip-path="url(#logo-disc)">
+    <path d="M37 63 C31 64.5 25.5 68.5 21.5 75 C17.5 82 15.5 90 15 98 L81 98 C80.5 90 78.5 82 74.5 75 C70.5 68.5 65 64.5 59 63 Z" fill="url(#logo-cloakG)" stroke="#6576b3" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M30 72 C28 80 27 88 27.5 96 M66 72 C68 80 69 88 68.5 96 M48 66 C47 76 47.5 86 48 96" fill="none" stroke="#3d4775" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+  <circle cx="48" cy="54" r="38" fill="none" stroke="url(#logo-ringG)" stroke-width="2.5"/>
+  <circle cx="48" cy="54" r="42.5" fill="none" stroke="#6f86d6" stroke-opacity=".35" stroke-width="1"/>
+  <g transform="translate(16 6) scale(1)">
+    <path fill="url(#logo-maskG)" stroke="#0b0d14" stroke-width="1.6" stroke-linejoin="round"
+      d="M20.2 33 C11.5 27.5 8.4 15.5 12 2.5 C14.4 11.5 18.6 19.4 26 25.2 C27.9 24.6 29.9 24.3 32 24.3 C34.1 24.3 36.1 24.6 38 25.2 C45.4 19.4 49.6 11.5 52 2.5 C55.6 15.5 52.5 27.5 43.8 33 C45.2 35.6 46 38.6 46 41.8 C46 51.2 39.8 58.6 32 58.6 C24.2 58.6 18 51.2 18 41.8 C18 38.6 18.8 35.6 20.2 33 Z"/>
+    <path d="M14.2 9 C15.6 15 18.6 20.6 23.4 25" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="1.1" stroke-linecap="round"/>
+    <ellipse cx="25.6" cy="43" rx="4.2" ry="7" fill="#0b0d14" transform="rotate(6 25.6 43)"/>
+    <ellipse cx="38.4" cy="43" rx="4.2" ry="7" fill="#0b0d14" transform="rotate(-6 38.4 43)"/>
+    <ellipse cx="24.4" cy="40" rx="1.1" ry="1.8" fill="#8fa8ff" opacity=".55"/>
+    <ellipse cx="37.2" cy="40" rx="1.1" ry="1.8" fill="#8fa8ff" opacity=".55"/>
+  </g>
+</svg>
         <div>
           <h1>Hollow Knight <span>Completionist</span></h1>
           <p class="tagline">Tracker 112 % : chargez votre sauvegarde, on vous dit ce qu'il manque.</p>
@@ -83,6 +101,7 @@
 
     <div class="tabs" role="tablist">
       <button role="tab" data-tab="list" class="on">✓ Checklist</button>
+      <button role="tab" data-tab="map">⌖ Carte d'Hallownest</button>
       <button role="tab" data-tab="tree">⟡ Arbre de progression</button>
       <button role="tab" data-tab="stats">∑ Statistiques</button>
     </div>
@@ -113,6 +132,20 @@
       <div class="tree-scroll"><div id="tree"></div></div>
       <h3>Prochains objectifs</h3>
       <ul class="next-list" id="nextList"></ul>
+    </section>
+
+    <section class="panel" id="panel-map" hidden>
+      <div class="tree-head">
+        <div>
+          <h2>Carte d'Hallownest</h2>
+          <p class="small muted">Plan schématique des zones, colorées selon votre progression. Cliquez sur une zone pour voir ce qu'il y reste à trouver.</p>
+        </div>
+        <strong id="mapSummary"></strong>
+      </div>
+      <div class="map-layout">
+        <div class="map-scroll"><div id="map"></div></div>
+        <aside class="zone-detail" id="zoneDetail" aria-live="polite"></aside>
+      </div>
     </section>
 
     <section class="panel" id="panel-stats" hidden>

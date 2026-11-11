@@ -2,7 +2,7 @@
   "use strict";
 
   const { SECTIONS, sectionPercent, MAX_PERCENT } = HKData;
-  const { TREE, COLORS } = HKExtras;
+  const { TREE, COLORS, MAP_ZONES, MAP_LINKS, ITEM_ZONE } = HKExtras;
   const $ = (sel, root = document) => root.querySelector(sel);
 
   const LS = {
@@ -22,6 +22,7 @@
     spoilers: LS.get("hk.spoilers", true),
     english: LS.get("hk.english", true),
     tab: LS.get("hk.tab", "list"),
+    mapZone: LS.get("hk.mapZone", null),
     collapsed: new Set(LS.get("hk.collapsed", [])),
     query: "",
     fresh: new Set(), // ids newly obtained since previous load (for highlight)
@@ -251,6 +252,7 @@
     renderTabs();
     if (state.tab === "tree") renderTree();
     if (state.tab === "stats") renderStats();
+    if (state.tab === "map") renderMap();
   }
 
   /* ------------------------------ 112 cells grid ----------------------------- */
@@ -372,6 +374,105 @@
         return `<li style="--c:${COLORS[n.cat]}"><b>${esc(n.label)}</b>${item && item.hint ? `<span>${esc(item.hint)}</span>` : ""}</li>`;
       }).join("")
       : `<li class="muted">Toutes les étapes clés sont franchies. Bravo !</li>`;
+  }
+
+  /* ------------------------------- Hallownest map ------------------------------ */
+
+  function zoneItems(zoneId) {
+    const out = [];
+    for (const s of SECTIONS) {
+      for (const it of s.items || []) {
+        if (ITEM_ZONE[it.id] === zoneId) out.push({ item: it, section: s });
+      }
+    }
+    return out;
+  }
+
+  function zoneColor(ratio) {
+    if (ratio >= 1) return "#f3c65a";
+    // From dim slate to soul blue as progress grows.
+    const a = [70, 80, 110], b = [143, 168, 255];
+    const t = Math.pow(ratio, 0.8);
+    return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`;
+  }
+
+  // Split an area name into lines that fit in a zone of width w (Cinzel 15px).
+  function wrapName(name, w) {
+    const max = Math.floor((w - 28) / 10.5);
+    const lines = [];
+    for (const word of name.split(" ")) {
+      const last = lines[lines.length - 1];
+      if (last && (last + " " + word).length <= max) lines[lines.length - 1] = last + " " + word;
+      else lines.push(word);
+    }
+    return lines;
+  }
+
+  function renderMap() {
+    const zones = MAP_ZONES.map((z) => {
+      const list = zoneItems(z.id);
+      const done = list.filter((e) => isDone(e.item.id)).length;
+      return { ...z, list, done, total: list.length, ratio: list.length ? done / list.length : 0 };
+    });
+    const byId = Object.fromEntries(zones.map((z) => [z.id, z]));
+    if (!state.mapZone || !byId[state.mapZone]) {
+      const firstMissing = zones.find((z) => z.done < z.total);
+      state.mapZone = (firstMissing || zones[0]).id;
+    }
+
+    const center = (z) => [z.x + z.w / 2, z.y + z.h / 2];
+    let links = "";
+    for (const [a, b] of MAP_LINKS) {
+      const [x1, y1] = center(byId[a]), [x2, y2] = center(byId[b]);
+      const lit = byId[a].done > 0 && byId[b].done > 0;
+      links += `<line class="tunnel${lit ? " lit" : ""}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+    }
+
+    let shapes = "";
+    for (const z of zones) {
+      const col = zoneColor(z.ratio);
+      const sel = z.id === state.mapZone;
+      const pct = Math.round(z.ratio * 100);
+      const barW = z.w - 28;
+      shapes += `<g class="zone${z.ratio >= 1 ? " full" : ""}${z.dream ? " dream" : ""}${sel ? " sel" : ""}" data-zone="${z.id}" style="--zc:${col}" tabindex="0" role="button" aria-label="${esc(z.name)} : ${z.done} sur ${z.total}">
+        <rect class="zone-bg" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="20"/>
+        <rect class="zone-fill" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="20" style="opacity:${0.12 + z.ratio * 0.4}"/>
+        <text class="zone-name" x="${z.x + 14}" y="${z.y + 26}">${wrapName(z.name, z.w).map((l, i) => `<tspan x="${z.x + 14}" dy="${i ? 17 : 0}">${esc(l)}</tspan>`).join("")}</text>
+        ${z.sub ? `<text class="zone-sub" x="${z.x + 14}" y="${z.y + 26 + 16 * wrapName(z.name, z.w).length}">${esc(z.sub)}</text>` : ""}
+        <text class="zone-pct" x="${z.x + z.w - 14}" y="${z.y + z.h - 22}" text-anchor="end">${pct}%</text>
+        <text class="zone-count" x="${z.x + 14}" y="${z.y + z.h - 22}">${z.done}/${z.total}</text>
+        <rect class="zone-track" x="${z.x + 14}" y="${z.y + z.h - 14}" width="${barW}" height="4" rx="2"/>
+        <rect class="zone-bar" x="${z.x + 14}" y="${z.y + z.h - 14}" width="${barW * z.ratio}" height="4" rx="2"/>
+      </g>`;
+    }
+
+    $("#map").innerHTML = `<svg viewBox="0 0 1000 700" role="img" aria-label="Carte d'Hallownest">
+      <defs>
+        <pattern id="mapDots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="rgba(255,255,255,.05)"/></pattern>
+      </defs>
+      <rect width="1000" height="700" fill="url(#mapDots)"/>
+      ${links}${shapes}
+    </svg>`;
+
+    const totalDone = zones.reduce((a, z) => a + z.done, 0), total = zones.reduce((a, z) => a + z.total, 0);
+    const full = zones.filter((z) => z.ratio >= 1).length;
+    $("#mapSummary").textContent = `${full} / ${zones.length} zones complètes · ${totalDone} / ${total} objets`;
+
+    const z = byId[state.mapZone];
+    const missing = z.list.filter((e) => !isDone(e.item.id));
+    const got = z.list.filter((e) => isDone(e.item.id));
+    const row = (e, d) => `<li class="${d ? "done" : ""}" style="--c:${e.section.color}">
+        <span class="zi-dot"></span>
+        <div><b>${esc(e.item.name.replace(/^#\d+ /, ""))}</b><small>${esc(e.section.title.replace(/^DLC : /, ""))}${e.item.hint ? " · " + esc(e.item.hint) : ""}</small></div>
+      </li>`;
+    $("#zoneDetail").innerHTML = `
+      <div class="zd-head" style="--zc:${zoneColor(z.ratio)}">
+        <h3>${esc(z.name)}</h3>
+        <strong>${z.done}/${z.total}</strong>
+      </div>
+      <div class="bar"><i style="width:${z.ratio * 100}%;background:${zoneColor(z.ratio)}"></i></div>
+      ${missing.length ? `<h4>À trouver (${missing.length})</h4><ul class="zone-items">${missing.map((e) => row(e, false)).join("")}</ul>` : `<p class="zd-done">Zone terminée ✦</p>`}
+      ${got.length ? `<h4>Obtenu (${got.length})</h4><ul class="zone-items">${got.map((e) => row(e, true)).join("")}</ul>` : ""}`;
   }
 
   /* -------------------------------- Statistics ------------------------------- */
@@ -549,6 +650,25 @@
       setTimeout(() => card.classList.remove("flash"), 1600);
     }
   }
+  $("#map").addEventListener("click", (e) => {
+    const g = e.target.closest("[data-zone]");
+    if (!g) return;
+    state.mapZone = g.dataset.zone;
+    LS.set("hk.mapZone", state.mapZone);
+    renderMap();
+    if (window.matchMedia("(max-width: 900px)").matches) $("#zoneDetail").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("#map").addEventListener("keydown", (e) => {
+    if ((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.zone) {
+      e.preventDefault();
+      state.mapZone = e.target.dataset.zone;
+      LS.set("hk.mapZone", state.mapZone);
+      renderMap();
+      const again = document.querySelector(`[data-zone="${state.mapZone}"]`);
+      if (again) again.focus();
+    }
+  });
+
   $("#overview").addEventListener("click", (e) => {
     const b = e.target.closest("[data-sec]");
     if (b) goToSection(b.dataset.sec);
