@@ -2,6 +2,7 @@
   "use strict";
 
   const { SECTIONS, sectionPercent, MAX_PERCENT } = HKData;
+  const { TREE, COLORS } = HKExtras;
   const $ = (sel, root = document) => root.querySelector(sel);
 
   const LS = {
@@ -20,6 +21,7 @@
     filter: LS.get("hk.filter", "all"),
     spoilers: LS.get("hk.spoilers", true),
     english: LS.get("hk.english", true),
+    tab: LS.get("hk.tab", "list"),
     collapsed: new Set(LS.get("hk.collapsed", [])),
     query: "",
     fresh: new Set(), // ids newly obtained since previous load (for highlight)
@@ -55,7 +57,9 @@
       steelSoul: pd.permadeathMode > 0,
       loadedAt: Date.now(),
     };
-    return { done, counters, meta };
+    let stats = null;
+    try { stats = HKExtras.computeStats(raw); } catch (e) { console.warn(e); }
+    return { done, counters, meta, stats };
   }
 
   async function loadBuffer(buffer, label) {
@@ -152,7 +156,8 @@
 
     for (const section of SECTIONS) {
       const card = document.createElement("section");
-      card.className = "card" + (section.extra ? " extra" : "");
+      card.className = "card" + (section.extra ? " extra" : "") + (section.dlc ? " dlc dlc-" + section.id : "");
+      card.style.setProperty("--c", section.color);
       card.id = "sec-" + section.id;
       if (state.collapsed.has(section.id)) card.classList.add("collapsed");
 
@@ -211,7 +216,7 @@
         <header class="card-head" tabindex="0" role="button" aria-expanded="${!state.collapsed.has(section.id)}">
           <span class="sec-icon" aria-hidden="true">${section.icon || "•"}</span>
           <div class="sec-title">
-            <h2>${esc(section.title)}</h2>
+            <h2>${esc(section.title.replace(/^DLC : /, ""))}${section.dlc ? ` <span class="badge">DLC</span>` : ""}</h2>
             ${section.desc ? `<p>${esc(section.desc)}</p>` : ""}
           </div>
           <div class="sec-score">
@@ -241,6 +246,184 @@
     for (const btn of document.querySelectorAll(".seg button")) {
       btn.classList.toggle("on", btn.dataset.filter === state.filter);
     }
+
+    renderGrid();
+    renderTabs();
+    if (state.tab === "tree") renderTree();
+    if (state.tab === "stats") renderStats();
+  }
+
+  /* ------------------------------ 112 cells grid ----------------------------- */
+
+  function sectionDone(section) {
+    return (section.items || []).filter((it) => isDone(it.id)).length;
+  }
+
+  function renderGrid() {
+    const grid = $("#grid");
+    const legend = $("#gridLegend");
+    let cells = "";
+    let leg = "";
+    for (const section of SECTIONS) {
+      if (section.extra) continue;
+      const pct = sectionPercent(section, sectionDone(section));
+      const label = section.title.replace(/^DLC : /, "");
+      for (let i = 0; i < section.max; i++) {
+        cells += `<button class="cell${i < pct ? " on" : ""}" style="--c:${section.color}" data-sec="${section.id}" title="${esc(label)} : ${pct}/${section.max} %"></button>`;
+      }
+      leg += `<button class="leg${pct === section.max ? " full" : ""}" style="--c:${section.color}" data-sec="${section.id}"><i></i>${esc(label)} <b>${pct}/${section.max}</b></button>`;
+    }
+    grid.innerHTML = cells;
+    legend.innerHTML = leg;
+  }
+
+  /* ---------------------------------- Tabs ---------------------------------- */
+
+  function renderTabs() {
+    for (const b of document.querySelectorAll(".tabs button")) {
+      const on = b.dataset.tab === state.tab;
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-selected", on);
+    }
+    for (const p of document.querySelectorAll(".panel")) p.hidden = p.id !== "panel-" + state.tab;
+  }
+
+  /* ------------------------------ Progression tree ----------------------------- */
+
+  function findItem(id) {
+    for (const s of SECTIONS) for (const it of s.items || []) if (it.id === id) return it;
+    return null;
+  }
+
+  function renderTree() {
+    const depth = {};
+    const byId = Object.fromEntries(TREE.map((n) => [n.id, n]));
+    const getDepth = (n) => {
+      if (depth[n.id] !== undefined) return depth[n.id];
+      depth[n.id] = n.req.length ? 1 + Math.max(...n.req.map((r) => getDepth(byId[r]))) : 0;
+      return depth[n.id];
+    };
+    TREE.forEach(getDepth);
+
+    const W = 960, padX = 70, rowH = 92, top = 56;
+    const lanes = 8;
+    const rows = Math.max(...Object.values(depth)) + 1;
+    const H = top + rows * rowH + 10;
+    const pos = {};
+    for (const n of TREE) pos[n.id] = { x: padX + (n.lane / lanes) * (W - 2 * padX), y: top + depth[n.id] * rowH };
+
+    const status = (n) => (isDone(n.id) ? "done" : n.req.every((r) => isDone(r)) ? "next" : "locked");
+
+    let edges = "";
+    for (const n of TREE) {
+      for (const r of n.req) {
+        const a = pos[r], b = pos[n.id];
+        const lit = isDone(r) && isDone(n.id);
+        const half = isDone(r) && !isDone(n.id);
+        const my = (a.y + b.y) / 2;
+        edges += `<path class="edge${lit ? " lit" : half ? " half" : ""}" style="--c:${COLORS[n.cat]}" d="M${a.x},${a.y + 18} C${a.x},${my} ${b.x},${my} ${b.x},${b.y - 18}"/>`;
+      }
+    }
+
+    let nodes = "";
+    const next = [];
+    for (const n of TREE) {
+      const st = status(n);
+      if (st === "next") next.push(n);
+      const p = pos[n.id];
+      const words = n.label.split(" ");
+      const lines = [];
+      for (const w of words) {
+        if (lines.length && (lines[lines.length - 1] + " " + w).length <= 14) lines[lines.length - 1] += " " + w;
+        else lines.push(w);
+      }
+      const item = findItem(n.id);
+      const tip = n.label + (item && item.hint ? " — " + item.hint : "");
+      nodes += `<g class="node ${st}" style="--c:${COLORS[n.cat]}" transform="translate(${p.x},${p.y})" tabindex="0">
+        <title>${esc(tip)}</title>
+        <circle class="halo" r="26"/>
+        <circle class="dot" r="16"/>
+        ${st === "done" ? `<path class="tick" d="M-7,0 L-2,5 L7,-5"/>` : st === "locked" ? `<circle class="lock" r="3.5"/>` : `<circle class="spark" r="5"/>`}
+        <text y="34">${lines.map((l, i) => `<tspan x="0" dy="${i ? 13 : 0}">${esc(l)}</tspan>`).join("")}</text>
+      </g>`;
+    }
+
+    // Act bands
+    const acts = [
+      { label: "Début", from: 0, to: 2 },
+      { label: "Milieu", from: 3, to: 6 },
+      { label: "Fin de partie", from: 7, to: rows - 1 },
+    ];
+    let bands = "";
+    acts.forEach((a, i) => {
+      const y1 = top + a.from * rowH - rowH / 2 + 6, y2 = top + a.to * rowH + rowH / 2 - 6;
+      bands += `<rect class="band${i % 2 ? " alt" : ""}" x="6" y="${y1}" width="${W - 12}" height="${y2 - y1}" rx="16"/>
+        <text class="band-label" x="22" y="${y1 + 22}">${a.label}</text>`;
+    });
+
+    $("#tree").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Arbre de progression">${bands}${edges}${nodes}</svg>`;
+
+    const doneCount = TREE.filter((n) => isDone(n.id)).length;
+    $("#treeSummary").textContent = `${doneCount} / ${TREE.length} étapes clés franchies`;
+    $("#nextList").innerHTML = next.length
+      ? next.map((n) => {
+        const item = findItem(n.id);
+        return `<li style="--c:${COLORS[n.cat]}"><b>${esc(n.label)}</b>${item && item.hint ? `<span>${esc(item.hint)}</span>` : ""}</li>`;
+      }).join("")
+      : `<li class="muted">Toutes les étapes clés sont franchies. Bravo !</li>`;
+  }
+
+  /* -------------------------------- Statistics ------------------------------- */
+
+  function renderStats() {
+    const el = $("#stats-body");
+    const st = state.save && state.save.stats;
+    if (!st) {
+      el.innerHTML = `<p class="muted">Chargez une sauvegarde pour voir vos statistiques.</p>`;
+      return;
+    }
+    const m = state.save.meta;
+    const fmt = (n) => Number(n).toLocaleString("fr-FR");
+    const pips = (n, max, cls) => Array.from({ length: max }, (_, i) => `<i class="${cls}${i < n ? " on" : ""}"></i>`).join("");
+    const card = (icon, label, value, sub, color) =>
+      `<div class="stat" style="--c:${color || "var(--accent)"}"><span class="stat-icon">${icon}</span><div><small>${label}</small><strong>${value}</strong>${sub ? `<em>${sub}</em>` : ""}</div></div>`;
+
+    el.innerHTML = `
+      <div class="stat-hero">
+        <div class="vitals">
+          <div><small>Masques</small><div class="pips">${pips(st.maxHealth, 9, "mask")}</div></div>
+          <div><small>Réceptacles d'Âme</small><div class="pips">${pips(st.soulVessels, 3, "vessel")}</div></div>
+          <div><small>Emplacements de Charme</small><div class="pips">${pips(st.charmSlots, 11, "notch")}</div></div>
+        </div>
+        <div class="shade ${st.shadeZone ? "" : "none"}">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M18 6c-2 10 0 18 6 22-4 2-8 8-8 16 0 10 7 16 16 16s16-6 16-16c0-8-4-14-8-16 6-4 8-12 6-22-4 6-8 10-14 10S22 12 18 6z"/><ellipse cx="25" cy="42" rx="4" ry="6"/><ellipse cx="39" cy="42" rx="4" ry="6"/></svg>
+          <div>
+            <small>Votre ombre</small>
+            ${st.shadeZone ? `<strong>${esc(st.shadeZone)}</strong><em>${fmt(st.shadeGeo)} Geo à récupérer</em>` : `<strong>Aucune ombre</strong><em>Vous n'avez rien perdu</em>`}
+          </div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        ${card("⏱", "Temps de jeu", fmtTime(m.playTime), st.steelSoul ? "Mode Âme d'acier" : "Mode classique", "#cfd8ff")}
+        ${card("◎", "% affiché en jeu", m.gamePct !== null ? m.gamePct + " %" : "–", "", "#f3c65a")}
+        ${card("◉", "Geo", fmt(st.geo), st.bank !== null ? `Banque de Millibelle : ${fmt(st.bank)}` : "", "#e8d9a8")}
+        ${card("☾", "Essences", fmt(st.essence), st.essence >= 2400 ? "Voyante comblée" : `${fmt(Math.max(0, 2400 - st.essence))} avant les derniers mots de la Voyante`, "#d7a4ff")}
+        ${card("†", "Dégâts de l'Aiguillon", st.nailDamage, "", "#cfd6e4")}
+        ${card("✦", "Charmes possédés", st.charmsOwned + " / 40", "", "#b79cff")}
+        ${card("❦", "Larves sauvées", st.grubs + " / 46", "", "#9fe3b5")}
+        ${card("☰", "Journal du chasseur", st.journal + " / " + st.journalTotal, "créatures rencontrées", "#ef8b8b")}
+        ${card("⌂", "Salles visitées", fmt(st.rooms), "", "#7fd8e8")}
+        ${card("◈", "Reliques en poche", st.relics, `${st.relicsSold} vendue(s) à Lemm`, "#c9b88f")}
+        ${card("◍", "Oeufs rances", st.rancidEggs, `${st.eggsSold} vendu(s) à Jinn`, "#a3a9bb")}
+        ${card("♛", "Zote le Prince Gris", st.greyPrince + " / 10", "victoires", "#f39a5a")}
+        ${card("❖", "Protecteur Blanc", st.whiteDefender + " / 5", "victoires", "#f4efe6")}
+        ${card("❀", "Fleur délicate", st.flowerBroken ? st.flowerBroken + " fois brisée" : "Jamais brisée", "", "#ffb3c7")}
+      </div>
+      <div class="equipped">
+        <small>Charmes équipés</small>
+        <div>${st.equipped.length ? st.equipped.map((c) => `<span>${esc(c)}</span>`).join("") : `<span class="muted">Aucun</span>`}</div>
+      </div>
+      <p class="small muted">Le jeu n'enregistre pas le nombre de morts : seule la position de votre ombre (votre dernière mort) est connue.</p>`;
   }
 
   /* --------------------------------- Events --------------------------------- */
@@ -342,6 +525,32 @@
       e.preventDefault();
       e.target.click();
     }
+  });
+
+  $(".tabs").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    state.tab = b.dataset.tab;
+    LS.set("hk.tab", state.tab);
+    render();
+  });
+
+  function goToSection(id) {
+    state.tab = "list";
+    LS.set("hk.tab", "list");
+    state.collapsed.delete(id);
+    LS.set("hk.collapsed", [...state.collapsed]);
+    render();
+    const card = document.getElementById("sec-" + id);
+    if (card) {
+      card.scrollIntoView({ behavior: "smooth", block: "start" });
+      card.classList.add("flash");
+      setTimeout(() => card.classList.remove("flash"), 1600);
+    }
+  }
+  $("#overview").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-sec]");
+    if (b) goToSection(b.dataset.sec);
   });
 
   $(".seg").addEventListener("click", (e) => {

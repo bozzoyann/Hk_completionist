@@ -16,6 +16,10 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 - **Suivi en direct** (Chrome/Edge) : la page relit la sauvegarde toutes les 3 s et met en évidence les nouveaux objets.
 - Recherche, filtres (tout / manquants / obtenus), indices masquables, sections repliables.
 - Noms officiels de la version française du jeu, avec le nom anglais en dessous (masquable).
+- **Les 112 cases** : une grille où chaque case vaut 1 %, colorée par catégorie (thème propre à chaque DLC).
+- **Arbre de progression** : les grandes étapes de la partie reliées par leurs prérequis, avec les prochains objectifs accessibles.
+- **Statistiques** : masques, réceptacles, emplacements de charme, position et Geo de l'ombre, Journal du chasseur, salles visitées, reliques, charmes équipés… (le jeu n'enregistre pas le nombre de morts).
+- Objets et catégories rangés dans l'ordre de progression habituel.
 - Mode manuel sans sauvegarde : les cases cochées sont gardées dans le `localStorage`.
 
 ## Emplacement des sauvegardes
@@ -42,6 +46,7 @@ Pour le déployer, activez GitHub Pages sur la branche, dossier racine.
 - `js/aes.js` : déchiffrement AES-ECB minimal, sans dépendance
 - `js/save.js` : décodage du fichier de sauvegarde
 - `js/data.js` : liste des objets, champs de la save, indices et barème
+- `js/extras.js` : couleurs, ordre de progression, arbre et statistiques
 - `js/app.js` : interface (chargement, rendu, filtres, suivi en direct)
 
 Projet de fan, non affilié à Team Cherry.
