@@ -140,6 +140,11 @@
     e.target.value = "";
   });
 
+  document.querySelectorAll("[data-lang]").forEach((b) => {
+    b.classList.toggle("on", window.HKI18n && b.dataset.lang === HKI18n.lang);
+    b.addEventListener("click", () => window.HKI18n && HKI18n.setLang(b.dataset.lang));
+  });
+
   setSource();
   render();
 })();

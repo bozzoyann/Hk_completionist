@@ -3,6 +3,7 @@
 
   const { SECTIONS, sectionPercent, MAX_PERCENT } = HKData;
   const { TREE, COLORS, MAP_ZONES, MAP_LINKS, ITEM_ZONE } = HKExtras;
+  const t = (fr) => (window.HKI18n ? HKI18n.t(fr) : fr);
   const $ = (sel, root = document) => root.querySelector(sel);
 
   const LS = {
@@ -316,7 +317,7 @@
         <header class="card-head" tabindex="0" role="button" aria-expanded="${!state.collapsed.has(section.id)}">
           <span class="sec-icon" aria-hidden="true">${section.icon || "•"}</span>
           <div class="sec-title">
-            <h2>${esc(section.title.replace(/^DLC : /, ""))}${section.dlc ? ` <span class="badge">DLC</span>` : ""}</h2>
+            <h2>${esc(section.title.replace(/^DLC ?: /, ""))}${section.dlc ? ` <span class="badge">DLC</span>` : ""}</h2>
             ${section.desc ? `<p>${esc(section.desc)}</p>` : ""}
           </div>
           <div class="sec-score">
@@ -380,7 +381,7 @@
     for (const section of SECTIONS) {
       if (section.extra) continue;
       const pct = sectionPct(section, sectionDone(section));
-      const label = section.title.replace(/^DLC : /, "");
+      const label = section.title.replace(/^DLC ?: /, "");
       for (let i = 0; i < section.max; i++) {
         cells += `<button class="cell${i < pct ? " on" : ""}" style="--c:${section.color}" data-sec="${section.id}" title="${esc(label)} : ${pct}/${section.max} %"></button>`;
       }
@@ -417,7 +418,7 @@
         <button class="news-close" id="newsClose" aria-label="Masquer les nouveautés">✕</button>
       </div>
       <ul class="news-list">
-        ${entries.map((e) => `<li style="--c:${e.section.color}"><button data-sec="${e.section.id}" data-item="${e.item.id}"><i></i><b>${esc(e.item.name.replace(/^#\d+ /, ""))}</b><small>${esc(e.section.title.replace(/^DLC : /, ""))}</small></button></li>`).join("")}
+        ${entries.map((e) => `<li style="--c:${e.section.color}"><button data-sec="${e.section.id}" data-item="${e.item.id}"><i></i><b>${esc(e.item.name.replace(/^#\d+ /, ""))}</b><small>${esc(e.section.title.replace(/^DLC ?: /, ""))}</small></button></li>`).join("")}
       </ul>`;
   }
 
@@ -606,7 +607,7 @@
     const got = z.list.filter((e) => isDone(e.item.id));
     const row = (e, d) => `<li class="${d ? "done" : ""}" style="--c:${e.section.color}">
         <span class="zi-dot"></span>
-        <div><b>${esc(e.item.name.replace(/^#\d+ /, ""))}</b><small>${esc(e.section.title.replace(/^DLC : /, ""))}${e.item.hint ? " · " + esc(e.item.hint) : ""}</small></div>
+        <div><b>${esc(e.item.name.replace(/^#\d+ /, ""))}</b><small>${esc(e.section.title.replace(/^DLC ?: /, ""))}${e.item.hint ? " · " + esc(e.item.hint) : ""}</small></div>
       </li>`;
     $("#zoneDetail").innerHTML = `
       <div class="zd-head" style="--zc:${zoneColor(z.ratio)}">
@@ -841,7 +842,8 @@
     const names = ids.map((id) => { const f = findSection(id); return f ? f.item.name.replace(/^#\d+ /, "") : id; });
     try {
       if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
-        new Notification(`${ids.length} nouveauté${ids.length > 1 ? "s" : ""} !`, { body: names.slice(0, 5).join(", "), icon: "img/icon-192.png" });
+        const title = window.HKI18n && HKI18n.lang === "en" ? `${ids.length} new item${ids.length > 1 ? "s" : ""}!` : `${ids.length} nouveauté${ids.length > 1 ? "s" : ""} !`;
+        new Notification(title, { body: names.slice(0, 5).join(", "), icon: "img/icon-192.png" });
       }
     } catch { /* notifications unavailable */ }
   }
@@ -990,7 +992,7 @@
     const st = state.save ? state.save.stats : null;
     g.fillStyle = "#8d93a6";
     g.font = "400 20px Inter, sans-serif";
-    g.fillText(m ? `${fmtTime(m.playTime)} de jeu · ${steel ? "Âme d'acier" : "mode classique"}` : "Progression manuelle", 62, 116);
+    g.fillText(m ? `${fmtTime(m.playTime)} ${t("de jeu")} · ${steel ? t("Âme d'acier") : t("mode classique")}` : t("Progression manuelle"), 62, 116);
 
     // Big percentage ring
     const total = SECTIONS.filter((s) => !s.extra).reduce((a, s) => a + sectionPct(s, sectionDone(s)), 0);
@@ -1038,7 +1040,7 @@
       g.beginPath(); g.arc(x + 6, y - 6, 6, 0, Math.PI * 2); g.fill();
       g.fillStyle = "#cfd3de";
       g.font = "500 19px Inter, sans-serif";
-      g.fillText(section.title.replace(/^DLC : /, ""), x + 22, y);
+      g.fillText(section.title.replace(/^DLC ?: /, ""), x + 22, y);
       g.fillStyle = pct === section.max ? section.color : "#e9e6dc";
       g.font = "700 19px Inter, sans-serif";
       g.textAlign = "right";
@@ -1049,8 +1051,8 @@
     // Bottom stats
     if (st) {
       const items = [
-        ["Charmes", `${st.charmsOwned}/40`], ["Larves", `${st.grubs}/46`], ["Essences", String(st.essence)],
-        ["Journal", `${st.journal}/${st.journalTotal}`], ["Geo", String(st.geo)],
+        [t("Charmes"), `${st.charmsOwned}/40`], [t("Larves"), `${st.grubs}/46`], [t("Essences"), String(st.essence)],
+        [t("Journal"), `${st.journal}/${st.journalTotal}`], ["Geo", String(st.geo)],
       ];
       items.forEach(([label, value], i) => {
         const x = 60 + i * 220, y = 600;
@@ -1074,7 +1076,7 @@
     const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
     const file = new File([blob], "hollow-knight-progression.png", { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] }) && window.matchMedia("(pointer: coarse)").matches) {
-      try { await navigator.share({ files: [file], title: "Ma progression Hollow Knight" }); return; } catch { /* fall back to download */ }
+      try { await navigator.share({ files: [file], title: t("Ma progression Hollow Knight") }); return; } catch { /* fall back to download */ }
     }
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1353,6 +1355,10 @@
     state.news = null;
   }
   $("#notifyToggle").checked = state.notify;
+  document.querySelectorAll("[data-lang]").forEach((b) => {
+    b.classList.toggle("on", window.HKI18n && b.dataset.lang === HKI18n.lang);
+    b.addEventListener("click", () => window.HKI18n && HKI18n.setLang(b.dataset.lang));
+  });
 
   if (state.save && !state.shared) {
     setStatus(`Dernière sauvegarde chargée le ${new Date(state.save.meta.loadedAt).toLocaleString("fr-FR")}. Rechargez-la pour mettre à jour.`, "");
