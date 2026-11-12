@@ -25,6 +25,27 @@
     check: (pd) => pd["gotCharm_" + n] === true,
   });
 
+
+  const has = (list, scene) => Array.isArray(list) && list.includes(scene);
+  const GRUB_SCENES = [];
+  const grub = (n, sceneName, zone, hint) => {
+    GRUB_SCENES.push(sceneName);
+    return { id: "grub_" + sceneName, name: "Larve #" + n, en: "Grub", hint, zone, wiki: "Grub", check: (pd) => has(pd.scenesGrubRescued, sceneName) };
+  };
+  // The three grubs in the Collector's room share one scene: count them from the total.
+  const collectorGrub = (n, k) => ({
+    id: "grub_Collector_" + k, name: "Larve #" + n, en: "Grub", hint: "Tour de l'Amour, chez le Collectionneur (" + k + "/3)", zone: "city", wiki: "Grub",
+    check: (pd) => {
+      if (!has(pd.scenesGrubRescued, "Ruins2_11")) return false;
+      const others = GRUB_SCENES.filter((sc) => has(pd.scenesGrubRescued, sc)).length;
+      return Math.max(1, Math.min(3, (pd.grubsCollected || 0) - others)) >= k;
+    },
+  });
+  const root = (n, sceneName, zone, hint) => ({
+    id: "root_" + sceneName, name: "Racine de rêve #" + n, en: "Whispering Root", hint, zone, wiki: "Whispering_Root",
+    check: (pd) => has(pd.scenesEncounteredDreamPlantC, sceneName),
+  });
+
   const SECTIONS = [
     {
       id: "bosses", title: "Boss", max: 14, icon: "⚔",
@@ -256,10 +277,59 @@
 
     /* ------------- Not counted in %, but required to reach 112 % ------------- */
     {
-      id: "counters", title: "Prérequis : larves, Essences, stations", extra: true, required: true, icon: "∑",
-      desc: "Ne rapporte pas de % directement, mais indispensable : les 46 larves débloquent la Larve-mouche élégie, 2400 Essences les derniers mots de la Voyante, et toutes les stations la Tanière aux Coléoptères.",
+      id: "grubs", title: "Larves", extra: true, required: true, icon: "❦",
+      desc: "Ne rapportent pas de % directement, mais les 46 sont nécessaires : le Père des larves donne en échange un éclat de masque, le Chant des larves, un Minerai pâle et la Larve-mouche élégie.",
+      items: [
+        grub(1, "Crossroads_03", "crossroads", "Routes Oubliées, près de la station de Coléoptère"),
+        grub(2, "Crossroads_05", "crossroads", "Routes Oubliées, au centre"),
+        grub(3, "Crossroads_31", "crossroads", "Routes Oubliées, au-dessus des pics"),
+        grub(4, "Crossroads_35", "crossroads", "Routes Oubliées, près du bassin d'acide"),
+        grub(5, "Crossroads_48", "crossroads", "Routes Oubliées, gardée par des ennemis"),
+        grub(6, "Fungus1_06", "greenpath", "Vertchemin, près de Cornifer"),
+        grub(7, "Fungus1_07", "greenpath", "Vertchemin, près du Journal du chasseur"),
+        grub(8, "Fungus1_13", "greenpath", "Vertchemin, près de l'Emboutisseur Moussu Massif"),
+        grub(9, "Fungus1_21", "greenpath", "Vertchemin, près de la station de Coléoptère"),
+        grub(10, "Fungus1_28", "cliffs", "Falaises Hurlantes"),
+        grub(11, "Fungus2_18", "fungal", "Caverne Nocive, champignons rebondissants"),
+        grub(12, "Fungus2_20", "fungal", "Caverne Nocive, près du Champi-spore"),
+        grub(13, "Fungus3_47", "fog", "Brumes-canyon, près des Archives de l'Érudite"),
+        grub(14, "Fungus3_10", "gardens", "Jardins de la Reine, près de la station"),
+        grub(15, "Fungus3_22", "gardens", "Jardins de la Reine, tout en haut"),
+        grub(16, "Fungus3_48", "gardens", "Jardins de la Reine, près de Marmu"),
+        grub(17, "Ruins1_05", "city", "Cité des Larmes, côté gauche"),
+        grub(18, "Ruins1_32", "city", "Sanctuaire de l'Âme"),
+        grub(19, "Ruins_House_01", "city", "Cité des Larmes, maison gardée"),
+        grub(20, "Ruins2_03", "city", "L'Observatoire"),
+        grub(21, "Ruins2_07", "city", "Station du Roi"),
+        grub(22, "Waterways_04", "waterways", "Voies d'Eau Royales, partie principale"),
+        grub(23, "Waterways_13", "waterways", "Bosquet d'Isma"),
+        grub(24, "Waterways_14", "waterways", "Voies d'Eau Royales, accès par le tramway"),
+        grub(25, "Mines_03", "peak", "Mont Cristal, entre les pics"),
+        grub(26, "Mines_04", "peak", "Mont Cristal, sous un coffre"),
+        grub(27, "Mines_16", "peak", "Mont Cristal, à côté d'une Larve Caméléon"),
+        grub(28, "Mines_19", "peak", "Mont Cristal, passage des broyeurs"),
+        grub(29, "Mines_24", "peak", "Couronne d'Hallownest"),
+        grub(30, "Mines_31", "peak", "Mont Cristal, près du Coeur de cristal"),
+        grub(31, "Mines_35", "peak", "Butte Cristallisée"),
+        grub(32, "RestingGrounds_10", "resting", "Repos Éternel, dans la crypte"),
+        grub(33, "Deepnest_03", "deepnest", "Nid-profond, au-dessus des pics"),
+        grub(34, "Deepnest_31", "deepnest", "Nid-profond, près de l'antre de Nosk"),
+        grub(35, "Deepnest_36", "deepnest", "Nid-profond, à côté d'une Larve Caméléon"),
+        grub(36, "Deepnest_39", "deepnest", "Nid-profond, zone obscure"),
+        grub(37, "Deepnest_Spider_Town", "deepnest", "L'Antre de la Bête"),
+        grub(38, "Deepnest_East_11", "edge", "Frontières du Royaume, près du campement"),
+        grub(39, "Deepnest_East_14", "edge", "Frontières du Royaume, près d'Oro"),
+        grub(40, "Hive_03", "hive", "La Ruche, côté extérieur"),
+        grub(41, "Hive_04", "hive", "La Ruche, à l'intérieur"),
+        grub(42, "Abyss_17", "basin", "Bassin Ancestral, sous un sol à briser (Élan ravageur)"),
+        grub(43, "Abyss_19", "basin", "Bassin Ancestral, en hauteur (Ailes de monarque)"),
+        collectorGrub(44, 1), collectorGrub(45, 2), collectorGrub(46, 3),
+      ],
+    },
+    {
+      id: "counters", title: "Prérequis : Essences et stations", extra: true, required: true, icon: "∑",
+      desc: "2400 Essences pour les derniers mots de la Voyante, et toutes les stations pour la Tanière aux Coléoptères.",
       counters: [
-        { id: "grubs", name: "Larves sauvées", max: 46, wiki: "Grub", value: (pd) => pd.grubsCollected || 0 },
         { id: "essence", name: "Essences (paliers de la Voyante)", max: 2400, wiki: "Essence", value: (pd) => pd.dreamOrbs || 0 },
         { id: "stags", name: "Stations de Coléoptère", max: 11, wiki: "Stag_Station", value: (pd) => STAGS.filter((k) => pd[k] === true).length },
       ],
@@ -295,9 +365,6 @@
     {
       id: "others", title: "Autres objets", extra: true, icon: "◌",
       desc: "Totalement optionnel pour le 112 %.",
-      counters: [
-        { id: "roots", name: "Racines de rêve (Whispering Roots)", max: 15, wiki: "Whispering_Root", value: (pd, raw) => countRoots(raw) },
-      ],
       items: [
         { id: "slySimpleKey", name: "Clé simple #1", en: "Simple Key", hint: "Sly : 950 Geo", wiki: "Simple_Key", check: flag("slySimpleKey") },
         { id: "key2", name: "Clé simple #2", en: "Simple Key", hint: "Cité des Larmes, sous la station des Entrepôts de la Cité", wiki: "Simple_Key", check: scene("Shiny Item", "Ruins1_17") },
@@ -305,6 +372,27 @@
         { id: "gotLurkerKey", name: "Clé simple #4", en: "Simple Key", hint: "Colisée des Fous : vaincre la Rôdeuse Pâle", wiki: "Simple_Key", check: flag("gotLurkerKey") },
         { id: "hasTramPass", name: "Laissez-passer de tramway", en: "Tram Pass", hint: "Nid-profond : Tramway Délabré", wiki: "Tram_Pass", check: flag("hasTramPass") },
         { id: "gotShadeCharm", name: "Coeur du vide", en: "Void Heart", hint: "Les Abysses, avec l'Âme-royale", wiki: "Void_Heart", check: flag("gotShadeCharm") },
+      ],
+    },
+    {
+      id: "roots", title: "Racines de rêve", extra: true, icon: "❧",
+      desc: "Optionnel : chaque racine récoltée avec l'Aiguillon des rêves donne des Essences.",
+      items: [
+        root(1, "Crossroads_07", "crossroads", "Routes Oubliées"),
+        root(2, "Crossroads_ShamanTemple", "crossroads", "Butte Ancestrale"),
+        root(3, "Fungus1_13", "greenpath", "Vertchemin"),
+        root(4, "Cliffs_01", "cliffs", "Falaises Hurlantes"),
+        root(5, "Fungus2_17", "fungal", "Village des Mantes"),
+        root(6, "Fungus2_33", "fungal", "Caverne Nocive, près de Mangepatte"),
+        root(7, "Fungus3_11", "gardens", "Jardins de la Reine"),
+        root(8, "Ruins1_17", "city", "Cité des Larmes, près des Entrepôts"),
+        root(9, "Abyss_01", "waterways", "Voies d'Eau Royales, côté Bassin Ancestral"),
+        root(10, "Mines_23", "peak", "Mont Cristal"),
+        root(11, "RestingGrounds_05", "resting", "Repos Éternel"),
+        root(12, "RestingGrounds_08", "resting", "Clairière des Esprits"),
+        root(13, "Deepnest_39", "deepnest", "Nid-profond, zone obscure"),
+        root(14, "Deepnest_East_07", "edge", "Frontières du Royaume"),
+        root(15, "Hive_02", "hive", "La Ruche"),
       ],
     },
     {

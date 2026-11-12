@@ -1,0 +1,16 @@
+{
+  "name": "Hollow Knight Completionist",
+  "short_name": "HK Completionist",
+  "description": "Tracker 112 % pour Hollow Knight : chargez votre sauvegarde et voyez ce qu'il vous manque.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0c12",
+  "theme_color": "#0a0c12",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

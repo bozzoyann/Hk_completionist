@@ -27,6 +27,8 @@
     counters: "#a3a9bb",
     paleore: "#dfe7f2",
     keys: "#c9b88f",
+    grubs: "#9fe3b5",
+    roots: "#d7a4ff",
     others: "#8d93a6",
     endgame: "#ffe7a3",
   };
@@ -35,7 +37,7 @@
   /* ------------------------- Progression order ------------------------- */
   const SECTION_ORDER = ["equipment", "spells", "bosses", "dreamers", "dreamnail", "nail", "nailarts", "charms",
     "masks", "vessels", "warriors", "colosseum", "grimm", "lifeblood", "godmaster",
-    "counters", "paleore", "keys", "others", "endgame"];
+    "grubs", "counters", "paleore", "keys", "others", "roots", "endgame"];
 
   const ITEM_ORDER = {
     bosses: ["falseKnightDefeated", "hornet1Defeated", "bossGruzMother", "bossBroodingMawlek", "defeatedMantisLords",
@@ -240,6 +242,7 @@
   Z("abyss", "gotCharm_9 hasShadowDash scream2 gotShadeCharm");
   Z("colosseum", "colosseumBronzeCompleted colosseumSilverCompleted colosseumGoldCompleted ore6 gotLurkerKey");
   Z("palace", "gotCharm_36");
+  for (const s of SECTIONS) for (const it of s.items || []) if (it.zone) ITEM_ZONE[it.id] = it.zone;
   Z("waterways", "anySimpleKey");
   Z("godhome", "hasGodfinder pantheon1 pantheon2 pantheon3 pantheon4 pantheon5");
 

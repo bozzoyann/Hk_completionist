@@ -9,6 +9,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0a0c12">
+  <link rel="apple-touch-icon" href="img/icon-192.png">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -44,6 +47,7 @@
 </svg>
         <div>
           <h1>Hollow Knight <span>Completionist</span></h1>
+          <p class="steel-badge" id="steelBadge" hidden>Âme d'acier</p>
           <p class="tagline">Tracker 112 % : chargez votre sauvegarde, on vous dit ce qu'il manque.</p>
         </div>
       </div>
@@ -107,7 +111,9 @@
       <button role="tab" data-tab="list" class="on">✓ Checklist</button>
       <button role="tab" data-tab="map">⌖ Carte d'Hallownest</button>
       <button role="tab" data-tab="tree">⟡ Arbre de progression</button>
+      <button role="tab" data-tab="journal">☰ Journal du chasseur</button>
       <button role="tab" data-tab="stats">∑ Statistiques</button>
+      <a class="tabs-link" href="lore.html">✧ Lore et rencontres ↗</a>
       <label class="toggle opt-toggle" title="Clés simples en trop, laissez-passer, racines de rêve, boss optionnels et fins : ce qui n'est pas nécessaire pour le 112 %"><input type="checkbox" id="optional" checked> Objets optionnels</label>
     </div>
 
@@ -153,6 +159,16 @@
       </div>
     </section>
 
+    <section class="panel" id="panel-journal" hidden>
+      <div class="tree-head">
+        <div>
+          <h2>Journal du chasseur</h2>
+          <p class="small muted">Chaque créature, le nombre de victoires qu'il reste pour compléter ses notes.</p>
+        </div>
+      </div>
+      <div id="journal-body"></div>
+    </section>
+
     <section class="panel" id="panel-stats" hidden>
       <div id="stats-body"></div>
     </section>
@@ -166,7 +182,9 @@
   <script src="js/aes.js"></script>
   <script src="js/save.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/journal-data.js"></script>
   <script src="js/extras.js"></script>
+  <script src="js/lore-data.js"></script>
   <script src="js/app.js"></script>
   <script src="js/background.js"></script>
 </body>

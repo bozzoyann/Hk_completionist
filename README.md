@@ -26,6 +26,12 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 - Filtre « Objets optionnels » pour masquer ce qui n'est pas nécessaire au 112 % (les prérequis restent affichés).
 - Fond animé (particules d'âme, lumaflies, brume), désactivé si le système demande moins d'animations.
 - Logo : déposez une image `img/logo.png` pour remplacer le logo dessiné.
+- **Journal du chasseur** : chaque créature (noms officiels), découverte ou non, et le nombre de victoires restantes pour compléter ses notes.
+- **Larves et racines de rêve** : les 46 larves et 15 racines, chacune avec sa zone, cochées depuis la sauvegarde.
+- **Image récapitulative** à partager (onglet Statistiques).
+- **Thème Âme d'acier** quand la sauvegarde est en mode Âme d'acier.
+- **Hors ligne** : le site s'installe comme une application et fonctionne sans connexion.
+- **Page Lore** (`lore.html`) : quêtes et rencontres des personnages suivies depuis la save, et révélations résumées (floutées par défaut).
 - Mode manuel sans sauvegarde : les cases cochées sont gardées dans le `localStorage`.
 
 ## Emplacement des sauvegardes
@@ -53,6 +59,9 @@ Pour le déployer, activez GitHub Pages sur la branche, dossier racine.
 - `js/save.js` : décodage du fichier de sauvegarde
 - `js/data.js` : liste des objets, champs de la save, indices et barème
 - `js/extras.js` : couleurs, ordre de progression, arbre et statistiques
+- `js/journal-data.js` : entrées du Journal du chasseur (généré depuis les données du jeu)
+- `js/lore-data.js`, `js/lore.js`, `lore.html` : page Lore
+- `sw.js`, `manifest.webmanifest` : mode hors ligne
 - `js/background.js` : fond animé
 - `js/app.js` : interface (chargement, rendu, filtres, suivi en direct)
 

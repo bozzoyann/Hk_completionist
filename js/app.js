@@ -68,9 +68,22 @@
         if (v !== null) pctOverride[section.id] = Math.min(section.max, v);
       } catch { /* ignore */ }
     }
+    // Hunter's Journal: [discovered (0/1), kills remaining]
+    const journal = {};
+    for (const e of window.HKJournal || []) {
+      const discovered = e.k === "ShadeJournal" ? pd.hasJournal === true : pd["killed" + e.k] === true;
+      const left = typeof pd["kills" + e.k] === "number" ? pd["kills" + e.k] : (discovered ? 0 : e.n);
+      journal[e.k] = [discovered ? 1 : 0, Math.max(0, left)];
+    }
     let stats = null;
     try { stats = HKExtras.computeStats(raw); } catch (e) { console.warn(e); }
-    return { done, counters, meta, stats, pctOverride };
+    if (stats) {
+      const main = (window.HKJournal || []).filter((e) => !e.opt);
+      stats.journal = main.filter((e) => journal[e.k][0]).length;
+      stats.journalTotal = main.length;
+      stats.hunterMark = pd.hasHuntersMark === true;
+    }
+    return { done, counters, meta, stats, pctOverride, journal };
   }
 
   async function loadBuffer(buffer, label) {
@@ -78,6 +91,7 @@
       const raw = HKSave.decodeSave(buffer);
       if (!raw || !(raw.playerData || raw.geo !== undefined)) throw new Error("ce fichier ne ressemble pas à une sauvegarde Hollow Knight");
       const result = evaluate(raw);
+      if (window.HKLore) LS.set("hk.lore", HKLore.pick(raw.playerData || raw));
       result.meta.fileName = label;
       // Compare with the previous load of the same file, or else the last loaded save.
       const history = LS.get("hk.history", {});
@@ -294,6 +308,10 @@
       btn.classList.toggle("on", btn.dataset.filter === state.filter);
     }
 
+    const steel = !!(state.save && state.save.meta && state.save.meta.steelSoul);
+    document.body.classList.toggle("steel", steel);
+    $("#steelBadge").hidden = !steel;
+
     renderGrid();
     renderNews();
     renderTabs();
@@ -301,6 +319,7 @@
     if (state.tab === "tree") renderTree();
     if (state.tab === "stats") renderStats();
     if (state.tab === "map") renderMap();
+    if (state.tab === "journal") renderJournal();
   }
 
   /* ------------------------------ 112 cells grid ----------------------------- */
@@ -555,6 +574,74 @@
       ${got.length ? `<h4>Obtenu (${got.length})</h4><ul class="zone-items">${got.map((e) => row(e, true)).join("")}</ul>` : ""}`;
   }
 
+  /* ------------------------------ Hunter's Journal ----------------------------- */
+
+  function renderJournal() {
+    const el = $("#journal-body");
+    const j = state.save && state.save.journal;
+    if (!j) {
+      el.innerHTML = `<p class="muted">Chargez une sauvegarde pour voir votre Journal du chasseur.</p>`;
+      return;
+    }
+    const all = window.HKJournal || [];
+    const status = (e) => {
+      const [d, left] = j[e.k] || [0, e.n];
+      if (!d) return "unknown";
+      return left > 0 ? "hunting" : "complete";
+    };
+    const main = all.filter((e) => !e.opt);
+    const found = main.filter((e) => status(e) !== "unknown").length;
+    const complete = main.filter((e) => status(e) === "complete").length;
+    const mark = state.save.stats && state.save.stats.hunterMark;
+    const f = state.journalFilter || "all";
+    const q = state.journalQuery || "";
+    const card = (e) => {
+      const st = status(e);
+      const [, left] = j[e.k] || [0, e.n];
+      if (f !== "all" && f !== st) return "";
+      if (q && !(e.fr + " " + e.en).toLowerCase().includes(q)) return "";
+      const done = Math.max(0, e.n - left);
+      const ratio = e.n ? done / e.n : st === "complete" ? 1 : 0;
+      return `<li class="jc ${st}">
+        <div class="jc-name"><b>${st === "unknown" ? "???" : esc(e.fr)}</b>${st !== "unknown" && state.english && e.en !== e.fr ? `<small>${esc(e.en)}</small>` : ""}</div>
+        <div class="jc-state">${st === "unknown" ? "Pas encore rencontré" : st === "complete" ? "Notes complètes ✦" : `Encore ${left} à vaincre`}</div>
+        ${e.n ? `<div class="bar"><i style="width:${ratio * 100}%"></i></div>` : ""}
+      </li>`;
+    };
+    const showOpt = state.optional;
+    el.innerHTML = `
+      <div class="journal-head">
+        <div class="jh-stat"><strong>${found}<small>/${main.length}</small></strong><span>entrées découvertes</span></div>
+        <div class="jh-stat"><strong>${complete}<small>/${main.length}</small></strong><span>notes complètes</span></div>
+        <div class="jh-stat ${mark ? "ok" : ""}"><strong>${mark ? "✦" : "–"}</strong><span>${mark ? "Marque du chasseur obtenue" : "Marque du chasseur"}</span></div>
+      </div>
+      <div class="toolbar journal-tools">
+        <input type="search" id="journalSearch" placeholder="Rechercher une créature…" value="${esc(q)}" autocomplete="off">
+        <div class="seg" id="journalSeg">
+          ${[["all", "Toutes"], ["unknown", "À découvrir"], ["hunting", "À chasser"], ["complete", "Complètes"]].map(([k, l]) => `<button data-jf="${k}" class="${f === k ? "on" : ""}">${l}</button>`).join("")}
+        </div>
+      </div>
+      <p class="small muted">Pour obtenir la Marque du chasseur, il faut compléter les notes de toutes les entrées (vaincre chaque créature le nombre de fois demandé), puis retourner voir le Chasseur dans le Vertchemin.</p>
+      <ul class="journal-grid">${main.map(card).join("") || `<li class="muted">Aucune créature avec ce filtre.</li>`}</ul>
+      ${showOpt ? `<h3 class="journal-sub">Entrées supplémentaires</h3><p class="small muted">Boss secrets et contenus additionnels : ils ne comptent pas pour la Marque du chasseur.</p>
+      <ul class="journal-grid">${all.filter((e) => e.opt).map(card).join("")}</ul>` : ""}`;
+    const input = $("#journalSearch");
+    input.addEventListener("input", () => {
+      state.journalQuery = input.value.trim().toLowerCase();
+      const pos = input.selectionStart;
+      renderJournal();
+      const again = $("#journalSearch");
+      again.focus();
+      again.setSelectionRange(pos, pos);
+    });
+    $("#journalSeg").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-jf]");
+      if (!b) return;
+      state.journalFilter = b.dataset.jf;
+      renderJournal();
+    });
+  }
+
   /* -------------------------------- Statistics ------------------------------- */
 
   function renderStats() {
@@ -571,6 +658,7 @@
       `<div class="stat" style="--c:${color || "var(--accent)"}"><span class="stat-icon">${icon}</span><div><small>${label}</small><strong>${value}</strong>${sub ? `<em>${sub}</em>` : ""}</div></div>`;
 
     el.innerHTML = `
+      <div class="recap-row"><button class="btn" id="recapBtn">⇩ Image récapitulative à partager</button></div>
       <div class="stat-hero">
         <div class="vitals">
           <div><small>Masques</small><div class="pips">${pips(st.maxHealth, 9, "mask")}</div></div>
@@ -593,7 +681,7 @@
         ${card("†", "Dégâts de l'Aiguillon", st.nailDamage, "", "#cfd6e4")}
         ${card("✦", "Charmes possédés", st.charmsOwned + " / 40", "", "#b79cff")}
         ${card("❦", "Larves sauvées", st.grubs + " / 46", "", "#9fe3b5")}
-        ${card("☰", "Journal du chasseur", st.journal + " / " + st.journalTotal, "créatures rencontrées", "#ef8b8b")}
+        ${card("☰", "Journal du chasseur", st.journal + " / " + st.journalTotal, st.hunterMark ? "Marque du chasseur obtenue ✦" : "entrées découvertes", "#ef8b8b")}
         ${card("⌂", "Salles visitées", fmt(st.rooms), "", "#7fd8e8")}
         ${card("◈", "Reliques en poche", st.relics, `${st.relicsSold} vendue(s) à Lemm`, "#c9b88f")}
         ${card("◍", "Oeufs rances", st.rancidEggs, `${st.eggsSold} vendu(s) à Jinn`, "#a3a9bb")}
@@ -606,6 +694,137 @@
         <div>${st.equipped.length ? st.equipped.map((c) => `<span>${esc(c)}</span>`).join("") : `<span class="muted">Aucun</span>`}</div>
       </div>
       <p class="small muted">Le jeu n'enregistre pas le nombre de morts : seule la position de votre ombre (votre dernière mort) est connue.</p>`;
+  }
+
+  /* ------------------------------- Recap image ------------------------------- */
+
+  async function makeRecap() {
+    try { await document.fonts.ready; } catch { /* ignore */ }
+    const W = 1200, H = 675;
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const g = c.getContext("2d");
+    const steel = document.body.classList.contains("steel");
+    const accent = steel ? "#d6dbe6" : "#cfd8ff";
+
+    // Background
+    const bg = g.createRadialGradient(W * 0.3, -100, 50, W * 0.4, H * 0.3, W);
+    bg.addColorStop(0, steel ? "#2a1a20" : "#1d2440");
+    bg.addColorStop(1, "#0a0c12");
+    g.fillStyle = bg;
+    g.fillRect(0, 0, W, H);
+    for (let i = 0; i < 90; i++) {
+      g.fillStyle = `rgba(200, 215, 255, ${Math.random() * 0.4})`;
+      g.beginPath();
+      g.arc(Math.random() * W, Math.random() * H, Math.random() * 1.8 + 0.3, 0, Math.PI * 2);
+      g.fill();
+    }
+
+    // Title
+    g.fillStyle = "#e9e6dc";
+    g.font = "700 40px Cinzel, serif";
+    g.fillText("Hollow Knight", 60, 82);
+    g.fillStyle = accent;
+    g.font = "500 40px Cinzel, serif";
+    g.fillText("Completionist", 60 + g.measureText("Hollow Knight ").width + 8, 82);
+    const m = state.save ? state.save.meta : null;
+    const st = state.save ? state.save.stats : null;
+    g.fillStyle = "#8d93a6";
+    g.font = "400 20px Inter, sans-serif";
+    g.fillText(m ? `${fmtTime(m.playTime)} de jeu · ${steel ? "Âme d'acier" : "mode classique"}` : "Progression manuelle", 62, 116);
+
+    // Big percentage ring
+    const total = SECTIONS.filter((s) => !s.extra).reduce((a, s) => a + sectionPct(s, sectionDone(s)), 0);
+    const cx = W - 150, cy = 105, r = 70;
+    g.lineWidth = 14;
+    g.strokeStyle = "#262c3d";
+    g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
+    g.strokeStyle = total >= MAX_PERCENT ? "#f3c65a" : accent;
+    g.beginPath(); g.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * total) / MAX_PERCENT); g.stroke();
+    g.fillStyle = "#e9e6dc";
+    g.textAlign = "center";
+    g.font = "700 46px Cinzel, serif";
+    g.fillText(String(total), cx, cy + 12);
+    g.fillStyle = "#8d93a6";
+    g.font = "400 16px Inter, sans-serif";
+    g.fillText("/ 112 %", cx, cy + 36);
+    g.textAlign = "left";
+
+    // 112 grid
+    const gx = 60, gy = 200, cell = 34, gap = 5, cols = 28;
+    let idx = 0;
+    for (const section of SECTIONS) {
+      if (section.extra) continue;
+      const pct = sectionPct(section, sectionDone(section));
+      for (let i = 0; i < section.max; i++) {
+        const x = gx + (idx % cols) * (cell + gap), y = gy + Math.floor(idx / cols) * (cell + gap);
+        g.globalAlpha = i < pct ? 1 : 0.16;
+        g.fillStyle = section.color;
+        g.beginPath();
+        g.roundRect ? g.roundRect(x, y, cell, cell, 6) : g.rect(x, y, cell, cell);
+        g.fill();
+        idx++;
+      }
+    }
+    g.globalAlpha = 1;
+
+    // Category list
+    let lx = 60, ly = 395;
+    const secs = SECTIONS.filter((s) => !s.extra);
+    secs.forEach((section, i) => {
+      const col = Math.floor(i / 5), row = i % 5;
+      const x = lx + col * 370, y = ly + row * 34;
+      const pct = sectionPct(section, sectionDone(section));
+      g.fillStyle = section.color;
+      g.beginPath(); g.arc(x + 6, y - 6, 6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = "#cfd3de";
+      g.font = "500 19px Inter, sans-serif";
+      g.fillText(section.title.replace(/^DLC : /, ""), x + 22, y);
+      g.fillStyle = pct === section.max ? section.color : "#e9e6dc";
+      g.font = "700 19px Inter, sans-serif";
+      g.textAlign = "right";
+      g.fillText(`${pct}/${section.max}`, x + 330, y);
+      g.textAlign = "left";
+    });
+
+    // Bottom stats
+    if (st) {
+      const items = [
+        ["Charmes", `${st.charmsOwned}/40`], ["Larves", `${st.grubs}/46`], ["Essences", String(st.essence)],
+        ["Journal", `${st.journal}/${st.journalTotal}`], ["Geo", String(st.geo)],
+      ];
+      items.forEach(([label, value], i) => {
+        const x = 60 + i * 220, y = 600;
+        g.fillStyle = "#8d93a6";
+        g.font = "500 15px Inter, sans-serif";
+        g.fillText(label.toUpperCase(), x, y);
+        g.fillStyle = "#e9e6dc";
+        g.font = "700 26px Inter, sans-serif";
+        g.fillText(value, x, y + 32);
+      });
+    }
+    g.fillStyle = "#5d6378";
+    g.font = "400 14px Inter, sans-serif";
+    g.textAlign = "right";
+    g.fillText(location.host + location.pathname.replace(/index\.html$/, ""), W - 40, H - 22);
+    return c;
+  }
+
+  async function shareRecap() {
+    const canvas = await makeRecap();
+    const blob = await new Promise((res) => canvas.toBlob(res, "image/png"));
+    const file = new File([blob], "hollow-knight-progression.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && window.matchMedia("(pointer: coarse)").matches) {
+      try { await navigator.share({ files: [file], title: "Ma progression Hollow Knight" }); return; } catch { /* fall back to download */ }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
   }
 
   /* --------------------------------- Events --------------------------------- */
@@ -768,6 +987,15 @@
     LS.set("hk.optional", state.optional);
     render();
   });
+
+  $("#panel-stats").addEventListener("click", (e) => {
+    if (e.target.closest("#recapBtn")) shareRecap();
+  });
+
+  // Offline support
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  }
 
   $("#overview").addEventListener("click", (e) => {
     const b = e.target.closest("[data-sec]");
