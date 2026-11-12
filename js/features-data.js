@@ -175,9 +175,24 @@
       { flag: "openedHiddenStation", label: "Station Cachée", geo: 300 },
     ] },
   ];
-  const SHOP_FLAGS = SHOP.flatMap((s) => s.items).filter((i) => i.flag).map((i) => i.flag);
+  // Not needed for 112 %, but part of a full completion.
+  const SHOP_OPTIONAL = [
+    { shop: "Divine (Troupe Grimm)", items: [
+      { flag: "fragileGreed_unbreakable", label: "Avarice incassable", geo: 9000 },
+      { flag: "fragileHealth_unbreakable", label: "Coeur incassable", geo: 12000 },
+      { flag: "fragileStrength_unbreakable", label: "Force incassable", geo: 15000 },
+    ] },
+    { shop: "Salubra", items: [
+      { flag: "salubraNotch1", label: "Emplacement de Charme", geo: 120 },
+      { flag: "salubraNotch2", label: "Emplacement de Charme", geo: 500 },
+      { flag: "salubraNotch3", label: "Emplacement de Charme", geo: 900 },
+      { flag: "salubraNotch4", label: "Emplacement de Charme", geo: 1400 },
+      { flag: "salubraBlessing", label: "Bénédiction de Salubra", geo: 800 },
+    ] },
+  ];
+  const SHOP_FLAGS = [...SHOP, ...SHOP_OPTIONAL].flatMap((s) => s.items).filter((i) => i.flag).map((i) => i.flag);
   const RELIC_VALUES = [200, 450, 800, 1200]; // Wanderer's Journal, Hallownest Seal, King's Idol, Arcane Egg (Lemm)
   const RELIC_NAMES = ["Journal d'un voyageur", "Sceau d'Hallownest", "Idole du roi", "Oeuf arcanique"];
 
-  global.HKFeatures = { ACH_RULES, STATUES, SHOP, SHOP_FLAGS, RELIC_VALUES, RELIC_NAMES, MAPS };
+  global.HKFeatures = { ACH_RULES, STATUES, SHOP, SHOP_OPTIONAL, SHOP_FLAGS, RELIC_VALUES, RELIC_NAMES, MAPS };
 })(typeof window !== "undefined" ? window : globalThis);

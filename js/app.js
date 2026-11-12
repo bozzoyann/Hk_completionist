@@ -855,11 +855,15 @@
   function geoBudget() {
     const sv = state.save;
     const isDoneShop = (it) => (it.flag ? !!(sv.shopFlags && sv.shopFlags[it.flag]) : isDone(it.id));
-    const groups = HKFeatures.SHOP.map((g) => ({ shop: g.shop, items: g.items.filter((it) => !isDoneShop(it)) })).filter((g) => g.items.length);
-    const need = groups.reduce((a, g) => a + g.items.reduce((b, it) => b + it.geo, 0), 0);
+    const remaining = (list) => list.map((g) => ({ shop: g.shop, items: g.items.filter((it) => !isDoneShop(it)) })).filter((g) => g.items.length);
+    const sum = (gs) => gs.reduce((a, g) => a + g.items.reduce((b, it) => b + it.geo, 0), 0);
+    const groups = remaining(HKFeatures.SHOP);
+    const need = sum(groups);
+    const optGroups = remaining(HKFeatures.SHOP_OPTIONAL || []);
+    const needOpt = sum(optGroups);
     const relicGeo = (sv.relics || [0, 0, 0, 0]).reduce((a, n, i) => a + n * HKFeatures.RELIC_VALUES[i], 0);
     const have = (sv.stats ? sv.stats.geo : 0) + (sv.bank || 0);
-    return { groups, need, relicGeo, have };
+    return { groups, need, optGroups, needOpt, relicGeo, have };
   }
 
   /* -------------------------------- Notifications -------------------------------- */
@@ -983,6 +987,8 @@
       ${(() => {
         const b = geoBudget();
         const missing = Math.max(0, b.need - b.have);
+        const missingAll = Math.max(0, b.need + b.needOpt - b.have);
+        const detail = (gs) => `<ul class="budget-list">${gs.map((g) => `<li><b>${esc(g.shop)}</b><span>${g.items.map((it) => `${esc(it.label)} <i>${fmt(it.geo)}</i>`).join(" · ")}</span></li>`).join("")}</ul>`;
         return `<div class="budget">
           <div class="budget-head">
             <div><small>Budget en Geo pour le 112 %</small><strong>${fmt(b.need)} Geo</strong><em>restent à dépenser en achats nécessaires</em></div>
@@ -990,7 +996,12 @@
             <div><small>Reliques à vendre</small><strong>${fmt(b.relicGeo)} Geo</strong><em>chez Lemm</em></div>
             <div class="${missing ? "warn" : "ok"}"><small>${missing ? "Il manque" : "Verdict"}</small><strong>${missing ? fmt(Math.max(0, missing - b.relicGeo)) + " Geo" : "Ça suffit ✦"}</strong><em>${missing ? (missing <= b.relicGeo ? "en vendant vos reliques, c'est bon" : "après la vente des reliques") : "pas besoin de farmer"}</em></div>
           </div>
-          ${b.groups.length ? `<details><summary>Détail des achats restants</summary><ul class="budget-list">${b.groups.map((g) => `<li><b>${esc(g.shop)}</b><span>${g.items.map((it) => `${esc(it.label)} <i>${fmt(it.geo)}</i>`).join(" · ")}</span></li>`).join("")}</ul></details>` : ""}
+          ${b.groups.length ? `<details><summary>Détail des achats restants</summary>${detail(b.groups)}</details>` : ""}
+          ${b.optGroups.length ? `<div class="budget-opt">
+            <div><small>Achats optionnels (complétion totale)</small><strong>${fmt(b.needOpt)} Geo</strong><em>Charmes incassables de Divine, emplacements et bénédiction de Salubra</em></div>
+            <div class="${missingAll ? "warn" : "ok"}"><small>${missingAll ? "Il manque, avec ces achats" : "Avec ces achats"}</small><strong>${missingAll ? fmt(Math.max(0, missingAll - b.relicGeo)) + " Geo" : "Ça suffit ✦"}</strong><em>${missingAll ? (missingAll <= b.relicGeo ? "en vendant vos reliques, c'est bon" : "après la vente des reliques") : "tout est payable"}</em></div>
+          </div>
+          <details><summary>Détail des achats optionnels</summary>${detail(b.optGroups)}</details>` : ""}
         </div>`;
       })()}
       <div class="equipped">

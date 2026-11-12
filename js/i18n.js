@@ -297,14 +297,16 @@
   if (global.HKFeatures) {
     for (const s of HKFeatures.STATUES) { const f = s.fr; s.fr = s.en; s.en = f; }
     const SHOPS = { "Sly (avec la Clé du marchand)": "Sly (with the Shopkeeper's Key)", "Mangepatte": "Leg Eater", "Fabricant d'Aiguillons": "Nailsmith",
-      "Maîtres d'Aiguillons": "Nailmasters", "Colisée des Fous": "Colosseum of Fools", "Divers": "Other", "Stations de Coléoptère": "Stag Stations" };
+      "Maîtres d'Aiguillons": "Nailmasters", "Divine (Troupe Grimm)": "Divine (Grimm Troupe)", "Colisée des Fous": "Colosseum of Fools", "Divers": "Other", "Stations de Coléoptère": "Stag Stations" };
     const LABELS = { "Éclat de masque": "Mask Shard", "Fragment de réceptacle": "Vessel Fragment", "Clé simple (si aucune autre trouvée)": "Simple Key (if none found)",
       "Entaille éclair (Oro)": "Dash Slash (Oro)", "Fontaine du Bassin Ancestral (fragment)": "Ancient Basin fountain (fragment)",
       "Ascenseur vers la Cité (fragment)": "Lift to the City (fragment)", "Routes Oubliées": "Forgotten Crossroads", "Vertchemin": "Greenpath",
       "Station de la Reine": "Queen's Station", "Entrepôts de la Cité": "City Storerooms", "Station du Roi": "King's Station",
       "Repos Éternel": "Resting Grounds", "Jardins de la Reine": "Queen's Gardens", "Village Lointain": "Distant Village", "Station Cachée": "Hidden Station",
+      "Avarice incassable": "Unbreakable Greed", "Coeur incassable": "Unbreakable Heart", "Force incassable": "Unbreakable Strength",
+      "Emplacement de Charme": "Charm Notch", "Bénédiction de Salubra": "Salubra's Blessing",
       "Épreuve des Guerriers": "Trial of the Warrior", "Épreuve du Conquérant": "Trial of the Conqueror", "Épreuve du Fou": "Trial of the Fool" };
-    for (const g of HKFeatures.SHOP) {
+    for (const g of [...HKFeatures.SHOP, ...(HKFeatures.SHOP_OPTIONAL || [])]) {
       g.shop = SHOPS[g.shop] || g.shop;
       for (const it of g.items) it.label = LABELS[it.label] || NAME_EN[it.label] || it.label;
     }
@@ -489,6 +491,10 @@
     "Rechercher une créature ou une zone…": "Search a creature or an area…", "Grouper par zone": "Group by area",
     "Noms des créatures non rencontrées": "Names of unmet creatures", "Aucune créature avec ce filtre.": "No creature with this filter.",
     "ne comptent pas pour la Marque du chasseur": "do not count for the Hunter's Mark",
+    "Achats optionnels (complétion totale)": "Optional purchases (full completion)",
+    "Charmes incassables de Divine, emplacements et bénédiction de Salubra": "Divine's unbreakable charms, Salubra's notches and blessing",
+    "Il manque, avec ces achats": "Missing, with these purchases", "Avec ces achats": "With these purchases", "tout est payable": "you can afford everything",
+    "Détail des achats optionnels": "Optional purchases",
     "Langue": "Language", "de jeu": "played", "Âme d'acier": "Steel Soul", "mode classique": "classic mode", "Progression manuelle": "Manual progress",
     "Charmes": "Charms", "Larves": "Grubs", "Journal": "Journal", "Ma progression Hollow Knight": "My Hollow Knight progress",
   };

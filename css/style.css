@@ -706,3 +706,9 @@ body .recap-row { gap: 8px; flex-wrap: wrap; }
 }
 .seg button { white-space: nowrap; }
 @media (max-width: 760px) { .seg button { padding: 7px 10px; font-size: 13.5px; } }
+.budget-opt { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.budget-opt small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+.budget-opt strong { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.budget-opt em { display: block; font-style: normal; color: var(--muted); font-size: 12.5px; }
+.budget-opt .ok strong { color: var(--ok); }
+.budget-opt .warn strong { color: #ffd38f; }
