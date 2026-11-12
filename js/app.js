@@ -600,13 +600,13 @@
 
   // Geo opportunities per map zone (community farming spots and places to earn Geo)
   const GEO_SPOTS = {
-    greenpath: [["Chevaliers Moussus", "Bon spot de début de partie : de bonnes quantités de Geo par ennemi"]],
-    crossroads: [["Carcasses de la défense", "Ennemis solides qui lâchent beaucoup de Geo"]],
-    city: [["Salle au-dessus de la Station du Roi", "Spot de farm reconnu en milieu de partie"],
-      ["Lemm, le chercheur de reliques", "Vendez-lui vos reliques"]],
-    edge: [["Grands Sautilleurs, près du Colisée", "Spot de farm reconnu en fin de partie"]],
-    colosseum: [["Épreuve du Conquérant", "Entrée 450 Geo, environ 2 000 Geo par victoire"]],
-    fungal: [["Mangepatte", "Vend Avarice fragile : 20 à 100 % de Geo en plus sur les ennemis"]],
+    greenpath: [["Chevaliers Moussus", "Bon spot de début de partie : de bonnes quantités de Geo par ennemi", "Moss_Knight"]],
+    crossroads: [["Carcasses de la défense", "Ennemis solides qui lâchent beaucoup de Geo", "Husk_Guard"]],
+    city: [["Salle au-dessus de la Station du Roi", "Spot de farm reconnu en milieu de partie", "King's_Station"],
+      ["Lemm, le chercheur de reliques", "Vendez-lui vos reliques", "Relic_Seeker_Lemm"]],
+    edge: [["Grands Sautilleurs, près du Colisée", "Spot de farm reconnu en fin de partie", "Great_Hopper"]],
+    colosseum: [["Épreuve du Conquérant", "Entrée 450 Geo, environ 2 000 Geo par victoire", "Trial_of_the_Conqueror"]],
+    fungal: [["Mangepatte", "Vend Avarice fragile : 20 à 100 % de Geo en plus sur les ennemis", "Leg_Eater"]],
   };
 
   // Uniform entries { name, sub, color, done, amount } for a zone in the current map mode
@@ -615,13 +615,13 @@
     if (mode === "geo") {
       const out = [];
       const rocks = (state.save && state.save.geoRockZones && state.save.geoRockZones[zoneId]) || 0;
-      if (rocks) out.push({ key: "rocks-" + zoneId, name: `${rocks} rocher${rocks > 1 ? "s" : ""} à Geo à casser`, sub: "Dans les salles déjà visitées", color: "#e8d9a8", done: false, weight: rocks, count: rocks });
-      for (const [name, sub] of GEO_SPOTS[zoneId] || []) out.push({ key: "spot-" + zoneId + name, name, sub, color: "#f3c65a", done: false, weight: 3 });
+      if (rocks) out.push({ key: "rocks-" + zoneId, name: `${rocks} rocher${rocks > 1 ? "s" : ""} à Geo à casser`, sub: "Dans les salles déjà visitées", color: "#e8d9a8", done: false, weight: rocks, count: rocks, wiki: "Geo" });
+      for (const [name, sub, wiki] of GEO_SPOTS[zoneId] || []) out.push({ key: "spot-" + zoneId + name, name, sub, color: "#f3c65a", done: false, weight: 3, wiki });
       if (zoneId === "city" && state.save && state.save.bankerTheft >= 1 && state.save.bank > 0) {
-        out.push({ key: "millibelle", name: "Millibelle, dans la Maison du Plaisir", sub: "Frappez-la pour récupérer votre Geo volé", color: "#f3c65a", done: false, weight: 3 });
+        out.push({ key: "millibelle", name: "Millibelle, dans la Maison du Plaisir", sub: "Frappez-la pour récupérer votre Geo volé", color: "#f3c65a", done: false, weight: 3, wiki: "Millibelle" });
       }
       if (zoneId === "dirtmouth" && state.save && state.save.stats && state.save.stats.steelSoul && state.save.stats.rancidEggs) {
-        out.push({ key: "jinn", name: "Jinn (Âme d'acier)", sub: `${state.save.stats.rancidEggs} oeuf(s) rance(s) à vendre, environ 290 à 449 Geo chacun`, color: "#f3c65a", done: false, weight: 3 });
+        out.push({ key: "jinn", name: "Jinn (Âme d'acier)", sub: `${state.save.stats.rancidEggs} oeuf(s) rance(s) à vendre, environ 290 à 449 Geo chacun`, color: "#f3c65a", done: false, weight: 3, wiki: "Steel_Soul_Jinn" });
       }
       return out;
     }
@@ -637,6 +637,7 @@
           const st = !d ? "unknown" : left > 0 ? "hunting" : "complete";
           return {
             key: e.k,
+            wiki: ((window.HKI18n && HKI18n.lang === "en") ? e.fr : e.en).replace(/ /g, "_"),
             name: st === "unknown" && !showNames ? "???" : e.fr,
             sub: st === "unknown" ? `Pas encore rencontré · ${e.n} à vaincre` : st === "hunting" ? `Encore ${left} à vaincre (${e.n - left}/${e.n})` : "Notes complètes ✦",
             color: st === "complete" ? "#f3c65a" : "#ef8b8b",
@@ -653,6 +654,7 @@
           const amount = essenceOf(it);
           out.push({
             key: it.id,
+            wiki: it.wiki,
             name: strip(it.name),
             sub: (s.id === "roots" ? "Racine de rêve" : s.id === "warriors" ? "Rêve de guerrier" : "Boss des rêves") + ` · ${amount} Essences`,
             color: s.color,
@@ -665,6 +667,7 @@
     }
     return zoneItems(zoneId).map((e) => ({
       key: e.item.id,
+      wiki: e.item.wiki,
       name: strip(e.item.name),
       sub: e.section.title.replace(/^DLC ?: /, "") + (e.item.hint ? " · " + e.item.hint : ""),
       color: e.section.color,
@@ -823,6 +826,7 @@
     const row = (e, d) => `<li class="${d ? "done" : ""}" style="--c:${e.color}">
         <span class="zi-dot"></span>
         <div><b>${esc(e.name)}</b><small>${esc(e.sub)}</small></div>
+        ${e.wiki && e.name !== "???" ? `<a class="zi-wiki" href="${wikiUrl(e.wiki)}" target="_blank" rel="noopener" title="Ouvrir le wiki">wiki ↗</a>` : ""}
       </li>`;
     const noData = mode !== "items" && mode !== "geo" && !(state.save && state.save.journal);
     $("#zoneDetail").innerHTML = `
