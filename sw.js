@@ -2,10 +2,10 @@
  * Offline support. Site files are loaded from the network first (so a new version shows
  * up on the next reload) and fall back to the cache when offline. Google Fonts are cached.
  */
-const VERSION = "hkc-v7";
+const VERSION = "hkc-v8";
 const SHELL = [
   "./", "index.html", "lore.html", "css/style.css", "favicon.svg", "manifest.webmanifest",
-  "js/version.js", "js/aes.js", "js/save.js", "js/data.js", "js/journal-data.js", "js/achievements-data.js", "js/features-data.js", "js/i18n.js", "js/extras.js", "js/app.js",
+  "js/version.js", "js/aes.js", "js/save.js", "js/data.js", "js/journal-data.js", "js/features-data.js", "js/i18n.js", "js/extras.js", "js/app.js",
   "js/background.js", "js/lore-data.js", "js/lore.js", "img/icon-192.png", "img/icon-512.png",
 ];
 

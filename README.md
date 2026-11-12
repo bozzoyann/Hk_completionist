@@ -13,10 +13,10 @@ Les onglets :
 - **Progression** : les 112 cases (1 case = 1 %), la checklist par catégorie (recherche, filtres, prérequis du 112 % comme les larves, le minerai pâle et les clés) et l'arbre de progression avec les prochains objectifs.
 - **Carte** : plan schématique d'Hallownest en quatre modes : objets, Journal du chasseur, Essence (racines de rêve, rêves de guerriers, boss des rêves, paliers de la Voyante) et Geo (rochers à casser, spots de farm). Chaque zone liste son contenu, avec un lien vers le wiki.
 - **Journal** : chaque créature, où la chasser et les victoires restantes ; mêmes chiffres que l'écran du jeu.
-- **Défis** : succès déduits de la sauvegarde et Salle des Dieux (Attuned / Ascended / Radiant pour chaque statue).
+- **Salle des Dieux** : Attuned / Ascended / Radiant pour chaque statue.
 - **Charmes** : composer un build avec ses charmes et voir les caractéristiques obtenues (dégâts, portée, vitesse, masques, Âme, sorts…).
-- **Statistiques** : vitalité, ombre, statistiques de la partie, budget en Geo (112 % et complétion totale), guide pour gagner du Geo, image récapitulative et lien de partage.
-- **Lore** : toile des personnages, révélations (floutées) et quêtes suivies depuis la sauvegarde.
+- **Statistiques** : vitalité, ombre, statistiques de la partie, budget en Geo (112 % et complétion totale) et image récapitulative.
+- **Lore** : quêtes et rencontres des personnages, suivies depuis la sauvegarde.
 
 Autour : encadré des nouveautés quand on recharge une sauvegarde, suivi en direct du fichier (Chrome / Edge) avec notifications, thème Âme d'acier, version anglaise, mode hors ligne (application installable), fond animé, mode manuel sans sauvegarde. Les réglages (langue, objets optionnels, indices, notifications) sont dans le menu ⚙ Réglages.
 
@@ -46,7 +46,7 @@ Pour le déployer, activez GitHub Pages sur la branche, dossier racine.
 - `js/aes.js`, `js/save.js` : déchiffrement et décodage de la sauvegarde
 - `js/data.js` : objets suivis, champs de la save, indices et barème du 112 %
 - `js/journal-data.js` : Journal du chasseur (noms, victoires requises, comptage du jeu, zones)
-- `js/achievements-data.js`, `js/features-data.js` : succès, statues, achats, effets des charmes
+- `js/features-data.js` : statues, achats, effets des charmes
 - `js/extras.js` : couleurs, ordre de progression, arbre, carte et statistiques
 - `js/lore-data.js`, `js/lore.js` : onglet Lore (`lore.html` redirige vers cet onglet)
 - `js/i18n.js` : version anglaise

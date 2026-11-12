@@ -5,90 +5,6 @@
 (function (global) {
   "use strict";
 
-  /* ------------------------------ Achievements ------------------------------ */
-  // Each rule returns true (obtained), false (not yet) or null (cannot be known from the save).
-  // ctx: { total (tracker %), journalFound, journalTotal, stations }
-  const t = (k) => (pd) => pd[k] === true;
-  const door = (n) => (pd) => !!(pd["bossDoorStateTier" + n] && pd["bossDoorStateTier" + n].completed);
-  const ended = (pd) => pd.killedHollowKnight === true || pd.killedFinalBoss === true;
-  const MAPS = ["mapCrossroads", "mapGreenpath", "mapFogCanyon", "mapRoyalGardens", "mapFungalWastes", "mapCity", "mapWaterways",
-    "mapMines", "mapDeepnest", "mapCliffs", "mapOutskirts", "mapRestingGrounds", "mapAbyss"];
-  const speed = (hours, needFull) => (pd, c) => {
-    if (!ended(pd)) return false;
-    if (needFull && c.total < 100) return false;
-    return pd.playTime < hours * 3600 ? true : null;
-  };
-
-  const ACH_RULES = {
-    CHARMED: (pd) => pd.charmsOwned >= 1,
-    ENCHANTED: (pd) => pd.charmsOwned >= 20,
-    BLESSED: t("salubraBlessing"),
-    PROTECTED: (pd) => pd.maxHealthBase >= 6,
-    MASKED: (pd) => pd.maxHealthBase >= 9,
-    SOULFUL: (pd) => pd.MPReserveMax >= 33,
-    WORLDSOUL: (pd) => pd.MPReserveMax >= 99,
-    FK_DEFEAT: t("killedFalseKnight"),
-    HORNET_1: t("hornet1Defeated"),
-    HORNET_2: t("hornetOutskirtsDefeated"),
-    MANTIS_LORDS: t("killedMantisLord"),
-    SOUL_MASTER_DEFEAT: t("killedMageLord"),
-    DUNG_DEFENDER: t("killedDungDefender"),
-    BROKEN_VESSEL: t("killedInfectedKnight"),
-    COLLECTOR: t("killedJarCollector"),
-    TRAITOR_LORD: t("killedTraitorLord"),
-    WATCHER: t("lurienDefeated"),
-    TEACHER: t("monomonDefeated"),
-    BEAST: t("hegemolDefeated"),
-    ATTUNEMENT: (pd) => pd.dreamOrbs >= 600 || pd.dreamReward4 === true,
-    AWAKENING: t("dreamNailUpgraded"),
-    ASCENSION: t("mothDeparted"),
-    GRUBFRIEND: (pd) => pd.grubsCollected >= 23,
-    METAMORPHOSIS: (pd) => pd.grubsCollected >= 46,
-    STAG_STATION_HALF: (pd, c) => c.stations >= 4,
-    STAG_STATION_ALL: t("openedStagNest"),
-    MAP: (pd) => MAPS.every((k) => pd[k] === true),
-    HUNTER_1: (pd, c) => c.journalFound >= c.journalTotal,
-    HUNTER_2: t("hasHuntersMark"),
-    COLOSSEUM_1: t("colosseumBronzeCompleted"),
-    COLOSSEUM_2: t("colosseumSilverCompleted"),
-    COLOSSEUM_3: t("colosseumGoldCompleted"),
-    DREAM_FK: t("falseKnightDreamDefeated"),
-    DREAM_SOUL_MASTER_DEFEAT: t("mageLordDreamDefeated"),
-    DREAM_BROKEN_VESSEL: t("infectedKnightDreamDefeated"),
-    WHITE_DEFENDER: t("whiteDefenderDefeated"),
-    WHITE_DEFENDER2: (pd) => pd.whiteDefenderDefeats >= 5,
-    GREY_PRINCE: t("greyPrinceDefeated"),
-    GREY_PRINCE2: (pd) => pd.greyPrinceDefeats >= 10,
-    ZOTE: t("zoteDefeated"),
-    NEGLECT: t("zoteDead"),
-    NAILSMITH_KILL: t("nailsmithKilled"),
-    NAILSMITH_SPARE: t("nailsmithSpared"),
-    MOURNER: t("xunRewardGiven"),
-    QUIRREL_EPILOGUE: t("quirrelEpilogueCompleted"),
-    MR_MUSHROOM: (pd) => pd.mrMushroomState >= 8,
-    GRIMM: t("killedGrimm"),
-    NIGHTMARE_GRIMM: t("killedNightmareGrimm"),
-    BANISHMENT: t("destroyedNightmareLantern"),
-    VOID: t("gotShadeCharm"),
-    PANTHEON1: door(1),
-    PANTHEON2: door(2),
-    PANTHEON3: door(3),
-    PANTHEON4: door(4),
-    // The save does not record which ending was seen: only whether the bosses were beaten.
-    ENDING_A: (pd) => (pd.killedHollowKnight ? null : false),
-    ENDING_B: (pd) => (pd.killedHollowKnight ? null : false),
-    ENDING_C: t("killedFinalBoss"),
-    ENDINGD: door(5),
-    COMPLETION: (pd, c) => (c.total >= 100 && ended(pd) ? true : c.total >= 100 ? null : false),
-    COMPLETIONGG: (pd, c) => (c.total >= 112 && ended(pd) ? true : c.total >= 112 ? null : false),
-    SPEEDRUN_1: speed(10, false),
-    SPEEDRUN_2: speed(5, false),
-    SPEED_COMPLETION: speed(20, true),
-    // Only possible on a Steel Soul save.
-    STEELSOUL: (pd) => pd.permadeathMode > 0 && ended(pd),
-    STEELSOUL_COMPLETION: (pd, c) => pd.permadeathMode > 0 && ended(pd) && c.total >= 100,
-  };
-
   /* ---------------------------- Hall of Gods statues ---------------------------- */
   // statueState<Key> = { isUnlocked, completedTier1 (Attuned), completedTier2 (Ascended), completedTier3 (Radiant) }
   const STATUES = [
@@ -241,5 +157,5 @@
     40: ["L'Héritier de Grimm attaque les ennemis / Mélodie Insouciante peut annuler un coup reçu", "Grimmchild attacks enemies / Carefree Melody can block a hit"],
   };
 
-  global.HKFeatures = { CHARM_FX, ACH_RULES, STATUES, SHOP, SHOP_OPTIONAL, SHOP_FLAGS, RELIC_VALUES, RELIC_NAMES, MAPS };
+  global.HKFeatures = { CHARM_FX, STATUES, SHOP, SHOP_OPTIONAL, SHOP_FLAGS, RELIC_VALUES, RELIC_NAMES };
 })(typeof window !== "undefined" ? window : globalThis);

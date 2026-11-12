@@ -308,7 +308,6 @@
     Object.assign(HKExtras.ZONES, SHADE_ZONES_EN);
   }
   if (global.HKJournal) for (const e of HKJournal) { const f = e.fr; e.fr = e.en; e.en = f; }
-  if (global.HKAchievements) for (const a of HKAchievements) { [a.fr, a.en] = [a.en, a.fr]; [a.frd, a.end] = [a.end, a.frd]; }
   if (global.HKFeatures) {
     for (const s of HKFeatures.STATUES) { const f = s.fr; s.fr = s.en; s.en = f; }
     const SHOPS = { "Sly (avec la Clé du marchand)": "Sly (with the Shopkeeper's Key)", "Mangepatte": "Leg Eater", "Fabricant d'Aiguillons": "Nailsmith",
@@ -371,45 +370,6 @@
       q.name = e[0]; q.intro = e[1];
       q.steps.forEach((s, i) => { if (e[2][i]) s.label = e[2][i]; });
     }
-    const R = {
-      dreamers: ["The Dreamers", "Break the three Dreamers' seals",
-        "Lurien the Watcher, Monomon the Teacher and Herrah the Beast accepted an eternal sleep to hold the seals of the Black Egg Temple, where the Hollow Knight contains the Infection."],
-      hornet: ["Hornet's origins", "Find Hornet in the Beast's Den",
-        "Herrah agreed to become a Dreamer in exchange for a child from the Pale King: Hornet. That is why she watches over her sleeping mother and the kingdom."],
-      abyss: ["The Abyss and the vessels", "Descend to the bottom of the Abyss",
-        "The Abyss is the birthplace of the vessels born of the Void. The Pale King sought there a mindless vessel able to contain the Radiance. The Knight is one of them, back from that exile."],
-      queen: ["The White Lady", "Receive the White Lady's White Fragment",
-        "The Pale King's consort withdrew to Queen's Gardens. She knows the price of her husband's plan and entrusts the Knight with half of a royal soul."],
-      king: ["The Pale King's memory", "Reach the top of the White Palace",
-        "In the White Palace, you learn how the Pale King chose the Hollow Knight, whom he believed pure, to seal the Radiance, and what that choice cost the other vessels."],
-      void: ["The Void Heart", "Unite Kingsoul with the Void of the Abyss",
-        "By uniting the royal soul with the Void, the Knight gains authority over the shades of the Abyss: the condition to face the Radiance itself."],
-      grimm: ["The troupe's Ritual", "Complete the Ritual or banish the troupe",
-        "Grimm's troupe travels from kingdom to kingdom for a ritual of rebirth: its flames pass to a child who becomes the next Grimm. Brumm dreams of ending it."],
-      radiance: ["The Radiance", "Face the light at the heart of the dream",
-        "The Radiance is a god of light forgotten by the bugs of Hallownest in favour of the Pale King. The Infection is her way of taking back their minds through their dreams."],
-      godhome: ["Godhome", "Complete the Pantheon of Hallownest",
-        "The Godseekers travelled the lands to find a god worthy of worship. At the top of the Pantheon of Hallownest, they find something unexpected."],
-    };
-    for (const r of HKLore.REVELATIONS) { const e = R[r.id]; if (e) { r.title = e[0]; r.lock = e[1]; r.text = e[2]; } }
-    const N = {
-      knight: ["The Knight", "A silent vessel returned to Hallownest. Born of the Void, it shares the nature of the Hollow Knight."],
-      radiance: ["The Radiance", "A god of light, forgotten when the Pale King rose. The Infection is her way of taking back minds through dreams."],
-      paleKing: ["The Pale King", "The Wyrm turned king, who gave bugs their minds and the kingdom of Hallownest. To defeat the Infection, he created the vessels."],
-      whiteLady: ["The White Lady", "The Pale King's consort, withdrawn to Queen's Gardens. She holds half of Kingsoul."],
-      hollowKnight: ["The Hollow Knight", "The chosen vessel, sealed in the Black Egg Temple to contain the Radiance. The seal is weakening."],
-      hornet: ["Hornet", "The protector of Hallownest. She tests the Knight, then helps in her own way."],
-      lurien: ["Lurien", "The Watcher of the City of Tears, one of the three Dreamers holding the seal."],
-      monomon: ["Monomon", "The Teacher of Fog Canyon, the second Dreamer. Quirrel served her."],
-      herrah: ["Herrah", "The Beast of Deepnest, third Dreamer. She took that role in exchange for a child: Hornet."],
-      seer: ["The Seer", "The last of the moth tribe, who once worshipped the Radiance before forsaking her."],
-      quirrel: ["Quirrel", "A traveller without memory, who finds it again in the Teacher's Archives: he served Monomon."],
-      grimm: ["Grimm", "The master of a troupe from afar, who invites the Knight to take part in his Ritual."],
-    };
-    for (const n of HKLore.NODES) { const e = N[n.id]; if (e) { n.name = e[0]; n.text = e[1]; } }
-    const LK = { "époux": "consort", "père": "father", "mère": "mother", "l'a choisi": "chose him", "rivaux": "rivals", "la retient": "contains her",
-      "nés du Vide": "born of the Void", "scelle": "seals", "l'a reniée": "forsook her", "l'a servie": "served her", "Âme-royale": "Kingsoul", "le Rituel": "the Ritual" };
-    for (const l of HKLore.LINKS) l[2] = LK[l[2]] || l[2];
   }
 
   /* --------------------------- Interface text --------------------------- */
@@ -576,6 +536,11 @@
     "Plan schématique des zones, colorées selon le mode choisi. Cliquez sur une zone pour voir le détail.": "Schematic plan of the areas, coloured by the chosen mode. Click an area for details.",
     "Chaque créature, où la chasser et le nombre de victoires qu'il reste pour compléter ses notes.": "Every creature, where to hunt it and how many kills are left to complete its notes.",
     "Composez un build avec les Charmes que vous possédez et voyez les caractéristiques obtenues.": "Build a loadout with the charms you own and see the resulting stats.",
+    "Les quêtes et rencontres des personnages, d'après votre sauvegarde : pratique pour ne rien rater. Les dialogues complets sont sur le wiki.": "Character quests and encounters, from your save: handy so you miss nothing. The full dialogue is on the wiki.",
+    "Chargez une sauvegarde pour suivre les quêtes.": "Load a save to track the quests.",
+    "☀ Salle des Dieux": "☀ Hall of Gods", "Prérequis : stations de Coléoptère": "Prerequisites: Stag Stations",
+    "Toutes les stations sont nécessaires pour la Tanière aux Coléoptères. Pour l'Essence (2400 pour la Voyante), voir la carte en mode Essence.": "Every station is needed for the Stag Nest. For Essence (2,400 for the Seer), see the map in Essence mode.",
+    "Où gagner du Geo ? Voir la carte en mode Geo →": "Where to earn Geo? See the map in Geo mode →",
     "Les personnages rencontrés, les conversations qui ont eu lieu et les grandes révélations, d'après votre sauvegarde. Les résumés sont rédigés pour ce site ; les dialogues complets du jeu sont sur le wiki.":
       "The characters you met, the conversations that happened and the great revelations, according to your save. Summaries are written for this site; the game's full dialogue is on the wiki.",
     "Langue": "Language", "de jeu": "played", "Âme d'acier": "Steel Soul", "mode classique": "classic mode", "Progression manuelle": "Manual progress",
@@ -590,6 +555,7 @@
     [/^Version (\d+) du (.+)$/, "Version $1 of $2"],
     [/^(.+) \((.+) à 1 masque\)$/, "$1 ($2 on your last mask)"],
     [/^(\d+),(\d+)( s)?$/, "$1.$2$3"],
+    [/^Vos reliques valent ([\d\s ]+) Geo \((.+)\)$/, (m, n, list) => `Your relics are worth ${n} Geo (${list.replace(/Journal d'un voyageur/g, "Wanderer's Journal").replace(/Sceau d'Hallownest/g, "Hallownest Seal").replace(/Idole du roi/g, "King's Idol").replace(/Oeuf arcanique/g, "Arcane Egg")})`],
     [/^(\d+) rochers? à Geo à casser$/, "$1 Geo rock(s) to break"],
     [/^(\d+) rochers à Geo à casser · (\d+) zones intéressantes$/, "$1 Geo rocks to break · $2 areas worth visiting"],
     [/^Pour gagner du Geo \((\d+)\)$/, "To earn Geo ($1)"],

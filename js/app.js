@@ -24,9 +24,7 @@
     english: LS.get("hk.english", true),
     tab: LS.get("hk.tab", "progress"),
     progressView: LS.get("hk.progressView", "list"),
-    challengeView: LS.get("hk.challengeView", "ach"),
     notify: LS.get("hk.notify", false),
-    shared: false,
     mapZone: LS.get("hk.mapZone", null),
     mapMode: LS.get("hk.mapMode", "items"),
     optional: LS.get("hk.optional", true),
@@ -117,33 +115,16 @@
     for (const f of (window.HKFeatures ? HKFeatures.SHOP_FLAGS : [])) shopFlags[f] = pd[f] === true;
     const relics = [1, 2, 3, 4].map((i) => pd["trinket" + i] || 0);
     // Geo rocks still holding Geo in visited rooms, by area
-    const geoRocks = {};
     const geoRockZones = {};
     for (const r of (raw.sceneData && raw.sceneData.geoRocks) || []) {
       if (r.hitsLeft > 0) {
-        const a = sceneArea(r.sceneName); geoRocks[a] = (geoRocks[a] || 0) + 1;
         const z = sceneZone(r.sceneName); if (z) geoRockZones[z] = (geoRockZones[z] || 0) + 1;
       }
     }
     const seer = { d1: pd.dreamReward1 === true, d2: pd.dreamReward2 === true, d3: pd.dreamReward3 === true, c30: pd.gotCharm_30 === true, d5: pd.dreamReward5 === true,
       gate: pd.hasDreamGate === true, d6: pd.dreamReward6 === true, d7: pd.dreamReward7 === true, awoken: pd.dreamNailUpgraded === true, moth: pd.mothDeparted === true };
-    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics, seer, geoRocks, geoRockZones, bankerTheft: pd.bankerTheft || 0,
+    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics, seer, geoRockZones, bankerTheft: pd.bankerTheft || 0,
       bank: pd.bankerAccountPurchased ? pd.bankerBalance || 0 : 0 };
-    // Achievements
-    if (window.HKFeatures) {
-      const total = totalPercent(result);
-      const main = (window.HKJournal || []).filter((e) => !e.opt);
-      const ctx = { total, journalFound: main.filter((e) => journal[e.k][0]).length, journalTotal: main.length,
-        stations: ["openedTownBuilding", "openedCrossroads", "openedGreenpath", "openedFungalWastes", "openedRuins1", "openedRestingGrounds",
-          "openedRuins2", "openedRoyalGardens", "openedDeepnest", "openedHiddenStation", "openedStagNest"].filter((k) => pd[k] === true).length };
-      result.achievements = {};
-      for (const [k, rule] of Object.entries(HKFeatures.ACH_RULES)) {
-        let v = null;
-        try { v = rule(pd, ctx); } catch { v = null; }
-        result.achievements[k] = v === null ? null : !!v;
-      }
-      result.meta.trackerPct = total;
-    }
     return result;
   }
 
@@ -364,8 +345,8 @@
     $("#statTime").textContent = m ? fmtTime(m.playTime) : "–";
     $("#statGeo").textContent = m ? m.geo.toLocaleString("fr-FR") : "–";
     // Big drop zone without a save, compact bar with one
-    const loaded = !!state.save && !state.shared;
-    $("#loader").hidden = loaded || state.shared;
+    const loaded = !!state.save;
+    $("#loader").hidden = loaded;
     $("#saveBar").hidden = !loaded;
     $("#clearBtn").hidden = loaded;
     if (loaded && m) {
@@ -389,11 +370,10 @@
     if (state.tab === "stats") renderStats();
     if (state.tab === "map") renderMap();
     if (state.tab === "journal") renderJournal();
-    if (state.tab === "challenges") (state.challengeView === "gods" ? renderGodhome : renderAchievements)();
+    if (state.tab === "gods") renderGodhome();
     if (state.tab === "builds") renderBuilds();
     if (state.tab === "lore" && window.HKLoreView) HKLoreView.render();
     renderCoherence();
-    renderShareBanner();
   }
 
   /* ------------------------------ 112 cells grid ----------------------------- */
@@ -461,8 +441,7 @@
     }
     for (const p of document.querySelectorAll(".panel")) p.hidden = p.id !== "panel-" + state.tab;
     // Sub views
-    const sub = [["#progressView", "progressView", { list: "#view-list", tree: "#view-tree" }],
-      ["#challengeView", "challengeView", { ach: "#view-ach", gods: "#view-gods" }]];
+    const sub = [["#progressView", "progressView", { list: "#view-list", tree: "#view-tree" }]];
     for (const [seg, key, views] of sub) {
       for (const b of document.querySelectorAll(seg + " button")) b.classList.toggle("on", b.dataset.view === state[key]);
       for (const [v, sel] of Object.entries(views)) $(sel).hidden = v !== state[key];
@@ -631,7 +610,16 @@
       const out = [];
       const rocks = (state.save && state.save.geoRockZones && state.save.geoRockZones[zoneId]) || 0;
       if (rocks) out.push({ key: "rocks-" + zoneId, name: `${rocks} rocher${rocks > 1 ? "s" : ""} à Geo à casser`, sub: "Dans les salles déjà visitées", color: "#e8d9a8", done: false, weight: rocks, count: rocks, wiki: "Geo" });
-      for (const [name, sub, wiki] of GEO_SPOTS[zoneId] || []) out.push({ key: "spot-" + zoneId + name, name, sub, color: "#f3c65a", done: false, weight: 3, wiki });
+      for (const [name, sub, wiki] of GEO_SPOTS[zoneId] || []) {
+        let detail = sub;
+        if (wiki === "Relic_Seeker_Lemm" && state.save && state.save.relics) {
+          const value = state.save.relics.reduce((a, n, i) => a + n * HKFeatures.RELIC_VALUES[i], 0);
+          const list = state.save.relics.map((n, i) => (n ? `${n} × ${HKFeatures.RELIC_NAMES[i]}` : "")).filter(Boolean).join(", ");
+          if (value) detail = `Vos reliques valent ${value.toLocaleString("fr-FR")} Geo (${list})`;
+        }
+        if (wiki === "Leg_Eater" && state.save && state.save.charms && state.save.charms.owned.includes(24)) continue;
+        out.push({ key: "spot-" + zoneId + name, name, sub: detail, color: "#f3c65a", done: false, weight: 3, wiki });
+      }
       if (zoneId === "city" && state.save && state.save.bankerTheft >= 1 && state.save.bank > 0) {
         out.push({ key: "millibelle", name: "Millibelle, dans la Maison du Plaisir", sub: "Frappez-la pour récupérer votre Geo volé", color: "#f3c65a", done: false, weight: 3, wiki: "Millibelle" });
       }
@@ -963,7 +951,7 @@
   function renderCoherence() {
     const el = $("#coherence");
     const m = state.save && state.save.meta;
-    if (!m || m.gamePct === null || m.gamePct === undefined || state.shared) { el.hidden = true; return; }
+    if (!m || m.gamePct === null || m.gamePct === undefined) { el.hidden = true; return; }
     const total = SECTIONS.filter((s) => !s.extra).reduce((a, s) => a + sectionPct(s, sectionDone(s)), 0);
     if (Math.round(m.gamePct) === total) {
       el.hidden = false;
@@ -975,41 +963,6 @@
       el.innerHTML = `⚠ Le jeu indique <b>${m.gamePct} %</b>, le site calcule <b>${total} %</b>.
         <span>Le jeu ne recalcule son pourcentage qu'à certains moments (par exemple en ouvrant l'inventaire) : rouvrez l'inventaire en jeu, sauvegardez sur un banc et rechargez le fichier. Si l'écart persiste, c'est une erreur du site : n'hésitez pas à la signaler.</span>`;
     }
-  }
-
-  /* ---------------------------------- Achievements ---------------------------------- */
-
-  function renderAchievements() {
-    const el = $("#achievements-body");
-    const a = state.save && state.save.achievements;
-    if (!a) { el.innerHTML = `<p class="muted">Chargez une sauvegarde pour voir vos succès.</p>`; return; }
-    const list = window.HKAchievements || [];
-    const got = list.filter((x) => a[x.k] === true).length;
-    const unknown = list.filter((x) => a[x.k] === null).length;
-    const f = state.achFilter || "all";
-    const cls = (v) => (v === true ? "got" : v === null ? "unknown" : "locked");
-    el.innerHTML = `
-      <div class="journal-head">
-        <div class="jh-stat ok"><strong>${got}<small>/${list.length}</small></strong><span>succès obtenus d'après la sauvegarde</span></div>
-        <div class="jh-stat"><strong>${list.length - got - unknown}</strong><span>restants</span></div>
-        <div class="jh-stat"><strong>${unknown}</strong><span>impossibles à vérifier depuis la save</span></div>
-      </div>
-      <div class="toolbar journal-tools">
-        <div class="seg" id="achSeg">${[["all", "Tous"], ["locked", "Restants"], ["got", "Obtenus"], ["unknown", "Incertains"]].map(([k, l]) => `<button data-af="${k}" class="${f === k ? "on" : ""}">${l}</button>`).join("")}</div>
-      </div>
-      <ul class="ach-grid">${list.filter((x) => f === "all" || cls(a[x.k]) === f).map((x) => `
-        <li class="ach ${cls(a[x.k])}">
-          <span class="ach-icon">${a[x.k] === true ? "✦" : a[x.k] === null ? "?" : "◇"}</span>
-          <div><b>${esc(x.fr)}</b>${state.english && x.en !== x.fr ? ` <small class="en">${esc(x.en)}</small>` : ""}<p>${esc(x.frd)}</p>
-          ${a[x.k] === null ? `<em>La sauvegarde ne permet pas de le vérifier.</em>` : ""}</div>
-        </li>`).join("")}</ul>
-      <p class="small muted">Les succès Steam, Xbox ou PlayStation sont liés à votre compte, pas à la sauvegarde : cette liste indique ce que la sauvegarde permet de déduire.</p>`;
-    $("#achSeg").addEventListener("click", (e) => {
-      const b = e.target.closest("[data-af]");
-      if (!b) return;
-      state.achFilter = b.dataset.af;
-      renderAchievements();
-    });
   }
 
   /* ---------------------------------- Godhome ---------------------------------- */
@@ -1144,57 +1097,6 @@
   }
 
 
-  /* -------------------------------- Geo farming -------------------------------- */
-
-  // Area of a room from its scene name
-  const SCENE_AREAS = [
-    [/^Tutorial/, "Passe du Roi", "King's Pass"], [/^Town|^Room_(Town|shop|mapper|Bretta|Jinn|Sly)/i, "Dirtmouth", "Dirtmouth"],
-    [/^Crossroads/, "Routes Oubliées", "Forgotten Crossroads"], [/^Fungus1_28|^Cliffs/, "Falaises Hurlantes", "Howling Cliffs"],
-    [/^Fungus1/, "Vertchemin", "Greenpath"], [/^Fungus2/, "Caverne Nocive", "Fungal Wastes"],
-    [/^Fungus3/, "Jardins de la Reine / Brumes-canyon", "Queen's Gardens / Fog Canyon"], [/^Ruins|^Room_(nailsmith|Mansion)/, "Cité des Larmes", "City of Tears"],
-    [/^Waterways/, "Voies d'Eau Royales", "Royal Waterways"], [/^Mines/, "Mont Cristal", "Crystal Peak"],
-    [/^RestingGrounds/, "Repos Éternel", "Resting Grounds"], [/^Deepnest_East/, "Frontières du Royaume", "Kingdom's Edge"],
-    [/^Deepnest/, "Nid-profond", "Deepnest"], [/^Abyss/, "Bassin Ancestral / Abysses", "Ancient Basin / Abyss"],
-    [/^Hive/, "La Ruche", "The Hive"], [/^Room_Colosseum/, "Colisée des Fous", "Colosseum of Fools"],
-    [/^White_Palace/, "Palais Blanc", "White Palace"], [/^GG_/, "Maison des Dieux", "Godhome"],
-  ];
-  function sceneArea(scene) {
-    const i = SCENE_AREAS.findIndex(([re]) => re.test(scene));
-    return i < 0 ? "x" : String(i);
-  }
-  function areaLabel(key) {
-    const en = window.HKI18n && HKI18n.lang === "en";
-    const a = SCENE_AREAS[+key];
-    return a ? (en ? a[2] : a[1]) : (en ? "Other" : "Autre");
-  }
-
-  function geoGuide() {
-    const sv = state.save;
-    const st = sv.stats || {};
-    const fmt = (n) => Number(n).toLocaleString("fr-FR");
-    const relicGeo = (sv.relics || [0, 0, 0, 0]).reduce((a, n, i) => a + n * HKFeatures.RELIC_VALUES[i], 0);
-    const relicList = (sv.relics || []).map((n, i) => (n ? `${n} × ${HKFeatures.RELIC_NAMES[i]} (${fmt(HKFeatures.RELIC_VALUES[i])})` : "")).filter(Boolean).join(" · ");
-    const rocks = sv.geoRocks || {};
-    const rockTotal = Object.values(rocks).reduce((a, n) => a + n, 0);
-    const greed = sv.charms && sv.charms.owned.includes(24);
-    const swarm = sv.charms && sv.charms.owned.includes(1);
-    const items = [];
-    if (relicGeo) items.push(["Vendre vos reliques à Lemm", `${fmt(relicGeo)} Geo : ${relicList}. Lemm tient boutique dans la Cité des Larmes.`]);
-    if (rockTotal) items.push(["Casser les rochers à Geo", `${rockTotal} rochers pas encore vidés dans les salles déjà visitées : ` +
-      Object.entries(rocks).sort((a, b) => b[1] - a[1]).map(([z, n]) => `${areaLabel(z)} (${n})`).join(", ") + "."]);
-    if (sv.bankerTheft >= 1 && (sv.bank || 0) > 0) items.push(["Récupérer votre Geo volé", "Millibelle s'est enfuie avec vos économies : retrouvez-la dans la Maison du Plaisir (Cité des Larmes) et frappez-la pour récupérer votre Geo."]);
-    if (st.steelSoul && st.rancidEggs) items.push(["Vendre vos oeufs rances à Jinn", `${st.rancidEggs} oeuf(s), environ 290 à 449 Geo chacun. Jinn remplace Jiji à Dirtmouth en mode Âme d'acier.`]);
-    items.push(["Équiper Avarice fragile", (greed ? "Vous l'avez. " : "Mangepatte la vend 250 Geo (Caverne Nocive). ") +
-      "Les ennemis lâchent de 20 à 100 % de Geo en plus. Ajoutez Essaim cueilleur" + (swarm ? " (vous l'avez)" : "") + " pour tout ramasser automatiquement."]);
-    items.push(["Rejouer l'Épreuve du Conquérant", "Entrée 450 Geo, environ 2 000 Geo à chaque victoire : la méthode la plus rentable en fin de partie."]);
-    items.push(["Farmer des ennemis qui rapportent beaucoup", "Début de partie : Chevaliers Moussus (Vertchemin). Ensuite : la salle au-dessus de la Station du Roi (Cité des Larmes), et les Grands Sautilleurs près du Colisée (Frontières du Royaume). Rechargez la zone en sortant puis en revenant."]);
-    return `<details class="geo-guide" open>
-      <summary>Gagner du Geo</summary>
-      <ol>${items.map(([t, d]) => `<li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join("")}</ol>
-      <p class="small muted">Prix des reliques et des boutiques : fichiers du jeu. Gains d'Avarice, de l'Épreuve du Conquérant, de Jinn et lieux de farm : guides de la communauté, valeurs approximatives.</p>
-    </details>`;
-  }
-
   /* -------------------------------- Notifications -------------------------------- */
 
   function chime() {
@@ -1224,48 +1126,6 @@
     } catch { /* notifications unavailable */ }
   }
 
-  /* -------------------------------- Share link -------------------------------- */
-
-  function allItemIds() {
-    const ids = [];
-    for (const s of SECTIONS) for (const it of s.items || []) ids.push(it.id);
-    return ids;
-  }
-
-  function shareLink() {
-    const ids = allItemIds();
-    const done = new Set(state.save ? state.save.done : [...state.manual]);
-    const bytes = new Uint8Array(Math.ceil(ids.length / 8));
-    ids.forEach((id, i) => { if (done.has(id)) bytes[i >> 3] |= 1 << (i & 7); });
-    let bin = "";
-    bytes.forEach((b) => { bin += String.fromCharCode(b); });
-    const bits = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    const m = state.save && state.save.meta;
-    const o = (state.save && state.save.pctOverride) || {};
-    const extra = [m ? Math.round(m.playTime || 0) : 0, m && m.steelSoul ? 1 : 0, o.masks ?? "x", o.vessels ?? "x"].join(".");
-    return location.origin + location.pathname + "#p=1." + extra + "." + bits;
-  }
-
-  function readShareLink() {
-    const mt = /#p=1\.(\d+)\.(\d)\.(\d|x)\.(\d|x)\.([A-Za-z0-9_-]+)/.exec(location.hash);
-    if (!mt) return null;
-    try {
-      const bin = atob(mt[5].replace(/-/g, "+").replace(/_/g, "/"));
-      const ids = allItemIds();
-      const done = ids.filter((id, i) => (bin.charCodeAt(i >> 3) >> (i & 7)) & 1);
-      const pctOverride = {};
-      if (mt[3] !== "x") pctOverride.masks = +mt[3];
-      if (mt[4] !== "x") pctOverride.vessels = +mt[4];
-      return { done, pctOverride, meta: { playTime: +mt[1], steelSoul: mt[2] === "1", gamePct: null, version: "", geo: 0 } };
-    } catch { return null; }
-  }
-
-  function renderShareBanner() {
-    const el = $("#shareBanner");
-    if (!state.shared) { el.hidden = true; return; }
-    el.hidden = false;
-  }
-
   /* -------------------------------- Statistics ------------------------------- */
 
   function renderStats() {
@@ -1282,7 +1142,7 @@
       `<div class="stat" style="--c:${color || "var(--accent)"}"><span class="stat-icon">${icon}</span><div><small>${label}</small><strong>${value}</strong>${sub ? `<em>${sub}</em>` : ""}</div></div>`;
 
     el.innerHTML = `
-      <div class="recap-row"><button class="btn ghost" id="linkBtn">🔗 Copier un lien de partage</button><button class="btn" id="recapBtn">⇩ Image récapitulative à partager</button></div>
+      <div class="recap-row"><button class="btn" id="recapBtn">⇩ Image récapitulative à partager</button></div>
       <div class="stat-hero">
         <div class="vitals">
           <div><small>Masques</small><div class="pips">${pips(st.maxHealth, 9, "mask")}</div></div>
@@ -1326,6 +1186,7 @@
             <div class="${missing ? "warn" : "ok"}"><small>${missing ? "Il manque" : "Verdict"}</small><strong>${missing ? fmt(Math.max(0, missing - b.relicGeo)) + " Geo" : "Ça suffit ✦"}</strong><em>${missing ? (missing <= b.relicGeo ? "en vendant vos reliques, c'est bon" : "après la vente des reliques") : "pas besoin de farmer"}</em></div>
           </div>
           ${b.groups.length ? `<details><summary>Détail des achats restants</summary>${detail(b.groups)}</details>` : ""}
+          <p class="small"><button class="link-btn" id="toGeoMap">Où gagner du Geo ? Voir la carte en mode Geo →</button></p>
           ${b.optGroups.length ? `<div class="budget-opt">
             <div><small>Achats optionnels (complétion totale)</small><strong>${fmt(b.needOpt)} Geo</strong><em>Charmes incassables de Divine, emplacements et bénédiction de Salubra</em></div>
             <div class="${missingAll ? "warn" : "ok"}"><small>${missingAll ? "Il manque, avec ces achats" : "Avec ces achats"}</small><strong>${missingAll ? fmt(Math.max(0, missingAll - b.relicGeo)) + " Geo" : "Ça suffit ✦"}</strong><em>${missingAll ? (missingAll <= b.relicGeo ? "en vendant vos reliques, c'est bon" : "après la vente des reliques") : "tout est payable"}</em></div>
@@ -1333,7 +1194,6 @@
           <details><summary>Détail des achats optionnels</summary>${detail(b.optGroups)}</details>` : ""}
         </div>`;
       })()}
-      ${geoGuide()}
       <div class="equipped">
         <small>Charmes équipés</small>
         <div>${st.equipped.length ? st.equipped.map((c) => `<span>${esc(c)}</span>`).join("") : `<span class="muted">Aucun</span>`}</div>
@@ -1573,8 +1433,8 @@
     if (e.key === "Escape" && !settings.hidden) { settings.hidden = true; $("#settingsBtn").focus(); }
   });
 
-  // Sub views (Progression: list / tree, Challenges: achievements / Hall of Gods)
-  for (const [seg, key] of [["#progressView", "progressView"], ["#challengeView", "challengeView"]]) {
+  // Sub views (Progression: list / tree)
+  for (const [seg, key] of [["#progressView", "progressView"]]) {
     $(seg).addEventListener("click", (e) => {
       const b = e.target.closest("[data-view]");
       if (!b) return;
@@ -1682,10 +1542,13 @@
 
   $("#panel-stats").addEventListener("click", async (e) => {
     if (e.target.closest("#recapBtn")) shareRecap();
-    if (e.target.closest("#linkBtn")) {
-      const url = shareLink();
-      try { await navigator.clipboard.writeText(url); setStatus("🔗 Lien de partage copié dans le presse-papiers.", "ok"); }
-      catch { prompt("Copiez ce lien :", url); }
+    if (e.target.closest("#toGeoMap")) {
+      state.tab = "map";
+      state.mapMode = "geo";
+      LS.set("hk.tab", "map");
+      LS.set("hk.mapMode", "geo");
+      render();
+      window.scrollTo({ top: $(".tabs").offsetTop - 10, behavior: "smooth" });
     }
   });
 
@@ -1725,10 +1588,6 @@
     if (state.notify) chime();
   });
 
-  $("#shareExit").addEventListener("click", () => {
-    history.replaceState(null, "", location.pathname);
-    location.reload();
-  });
 
   // Offline support
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
@@ -1783,19 +1642,15 @@
     state.tab = "lore";
     history.replaceState(null, "", location.pathname);
   }
-  const OLD_TABS = { list: ["progress", "list"], tree: ["progress", "tree"], achievements: ["challenges", "ach"], godhome: ["challenges", "gods"] };
+  // Tabs saved by older versions
+  const OLD_TABS = { list: ["progress", "list"], tree: ["progress", "tree"], achievements: ["gods"], godhome: ["gods"], challenges: ["gods"] };
   if (OLD_TABS[state.tab]) {
     const [tab, view] = OLD_TABS[state.tab];
     state.tab = tab;
-    if (tab === "progress") state.progressView = view; else state.challengeView = view;
+    if (view) state.progressView = view;
   }
   if (!document.getElementById("panel-" + state.tab)) state.tab = "progress";
-  const shared = readShareLink();
-  if (shared) {
-    state.shared = true;
-    state.save = { done: shared.done, counters: {}, meta: shared.meta, stats: null, pctOverride: shared.pctOverride, journal: null };
-    state.news = null;
-  }
+  if (/#p=/.test(location.hash)) history.replaceState(null, "", location.pathname);
   $("#notifyToggle").checked = state.notify;
   if (window.HK_VERSION) {
     const v = HK_VERSION;

@@ -128,10 +128,6 @@
   </header>
 
   <main class="wrap">
-    <div class="share-banner" id="shareBanner" hidden>
-      <span>👁 Vous consultez la progression partagée par quelqu'un d'autre (lecture seule).</span>
-      <button class="btn" id="shareExit">Revenir à ma progression</button>
-    </div>
     <section class="loader" id="loader">
       <div class="drop" id="drop" tabindex="0" role="button" aria-label="Charger une sauvegarde">
         <input type="file" id="fileInput" accept=".dat,.json,.txt,*/*" hidden>
@@ -171,7 +167,7 @@
       <button role="tab" data-tab="progress" class="on">✓ Progression</button>
       <button role="tab" data-tab="map">⌖ Carte</button>
       <button role="tab" data-tab="journal">☰ Journal</button>
-      <button role="tab" data-tab="challenges">✦ Défis</button>
+      <button role="tab" data-tab="gods">☀ Salle des Dieux</button>
       <button role="tab" data-tab="builds">◈ Charmes</button>
       <button role="tab" data-tab="stats">∑ Statistiques</button>
       <button role="tab" data-tab="lore" class="tab-lore">✧ Lore</button>
@@ -235,19 +231,9 @@
       <div id="journal-body"></div>
     </section>
 
-    <section class="panel" id="panel-challenges" hidden>
-      <div class="seg subview" id="challengeView" role="group" aria-label="Vue">
-        <button data-view="ach" class="on">Succès</button>
-        <button data-view="gods">Salle des Dieux</button>
-      </div>
-      <div id="view-ach">
-        <p class="small muted">Les succès du jeu, déduits de votre sauvegarde.</p>
-        <div id="achievements-body"></div>
-      </div>
-      <div id="view-gods" hidden>
-        <p class="small muted">Les statues de la Maison des Dieux et le niveau atteint contre chaque boss.</p>
-        <div id="godhome-body"></div>
-      </div>
+    <section class="panel" id="panel-gods" hidden>
+      <p class="small muted">Les statues de la Maison des Dieux et le niveau atteint contre chaque boss.</p>
+      <div id="godhome-body"></div>
     </section>
 
     <section class="panel" id="panel-builds" hidden>
@@ -256,22 +242,8 @@
     </section>
 
     <section class="panel" id="panel-lore" hidden>
-      <div class="tree-head">
-        <p class="small muted">Les personnages rencontrés, les conversations qui ont eu lieu et les grandes révélations, d'après votre sauvegarde. Les résumés sont rédigés pour ce site ; les dialogues complets du jeu sont sur le wiki.</p>
-        <label class="toggle"><input type="checkbox" id="spoilerToggle"> Révélations sans flou</label>
-      </div>
-      <p class="muted" id="loreEmpty" hidden>Chargez une sauvegarde pour révéler les personnages et les quêtes.</p>
-      <div class="web-head">
-        <h3 class="lore-h2">La toile d'Hallownest</h3>
-        <strong id="webCount"></strong>
-      </div>
-      <div class="web-layout">
-        <div class="web-wrap"><div id="web"></div></div>
-        <aside class="web-card" id="webCard" aria-live="polite"></aside>
-      </div>
-      <h3 class="lore-h2">Révélations</h3>
-      <div class="reveal-grid" id="reveals"></div>
-      <h3 class="lore-h2">Quêtes et rencontres</h3>
+      <p class="small muted">Les quêtes et rencontres des personnages, d'après votre sauvegarde : pratique pour ne rien rater. Les dialogues complets sont sur le wiki.</p>
+      <p class="muted" id="loreEmpty" hidden>Chargez une sauvegarde pour suivre les quêtes.</p>
       <div class="quest-grid" id="quests"></div>
     </section>
 
@@ -291,7 +263,6 @@
   <script src="js/save.js"></script>
   <script src="js/data.js"></script>
   <script src="js/journal-data.js"></script>
-  <script src="js/achievements-data.js"></script>
   <script src="js/features-data.js"></script>
   <script src="js/extras.js"></script>
   <script src="js/lore-data.js"></script>

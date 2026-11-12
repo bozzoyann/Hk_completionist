@@ -1,5 +1,5 @@
 /*
- * Lore page data: NPC questlines and encounters tracked by the save, and key lore revelations.
+ * Lore tab data: NPC questlines and encounters tracked by the save.
  * Steps test PlayerData fields: { k } true, { k, min } number >= min, { k, obj } object field true.
  * Summaries are short descriptions written for this site (not game text).
  */
@@ -201,108 +201,6 @@
     },
   ];
 
-  const REVELATIONS = [
-    {
-      id: "dreamers", title: "Les Rêveurs", wiki: "Dreamers",
-      when: [{ k: "lurienDefeated" }, { k: "monomonDefeated" }, { k: "hegemolDefeated" }], all: true,
-      lock: "Briser les trois sceaux des Rêveurs",
-      text: "Lurien le Veilleur, Monomon l'Érudite et Herrah la Bête ont accepté un sommeil éternel pour maintenir les sceaux du Temple de l'Oeuf Noir, où le Hollow Knight retient l'Infection.",
-    },
-    {
-      id: "hornet", title: "Les origines de Hornet", wiki: "Hornet",
-      when: [{ k: "hornetDenEncounter" }],
-      lock: "Retrouver Hornet dans l'Antre de la Bête",
-      text: "Herrah a accepté de devenir Rêveuse en échange d'un enfant du Roi pâle : Hornet. C'est pourquoi elle veille sur sa mère endormie et sur le royaume.",
-    },
-    {
-      id: "abyss", title: "L'Abysse et les vaisseaux", wiki: "The_Abyss",
-      when: [{ k: "hasShadowDash" }],
-      lock: "Descendre au fond des Abysses",
-      text: "Les Abysses sont le berceau des vaisseaux nés du Vide. Le Roi pâle y a cherché un réceptacle sans esprit, capable de contenir la Radiance. Le Chevalier est l'un d'eux, revenu de cet exil.",
-    },
-    {
-      id: "queen", title: "La Dame Blanche", wiki: "White_Lady",
-      when: [{ k: "gotQueenFragment" }],
-      lock: "Recevoir le Fragment blanc de la Dame Blanche",
-      text: "Compagne du Roi pâle, la Dame Blanche s'est retirée dans les Jardins de la Reine. Elle connaît le prix du plan de son époux et confie au Chevalier la moitié d'une âme royale.",
-    },
-    {
-      id: "king", title: "La mémoire du Roi pâle", wiki: "White_Palace",
-      when: [{ k: "gotKingFragment" }],
-      lock: "Atteindre le sommet du Palais Blanc",
-      text: "Dans le Palais Blanc, on découvre comment le Roi pâle a choisi le Hollow Knight, qu'il croyait pur, pour sceller la Radiance, et ce que ce choix a coûté aux autres vaisseaux.",
-    },
-    {
-      id: "void", title: "Le Coeur du vide", wiki: "Void_Heart",
-      when: [{ k: "gotShadeCharm" }],
-      lock: "Unir l'Âme-royale au Vide des Abysses",
-      text: "En unissant l'âme royale au Vide, le Chevalier gagne l'autorité sur les ombres des Abysses : la condition pour affronter la Radiance elle-même.",
-    },
-    {
-      id: "grimm", title: "Le Rituel de la troupe", wiki: "The_Grimm_Troupe",
-      when: [{ k: "killedNightmareGrimm" }, { k: "destroyedNightmareLantern" }],
-      lock: "Terminer le Rituel ou bannir la troupe",
-      text: "La troupe de Grimm voyage de royaume en royaume pour un rituel de renaissance : ses flammes se transmettent à un enfant qui deviendra le prochain Grimm. Brumm, lui, rêve d'y mettre fin.",
-    },
-    {
-      id: "radiance", title: "La Radiance", wiki: "The_Radiance",
-      when: [{ k: "killedFinalBoss" }],
-      lock: "Affronter la lumière au cœur du rêve",
-      text: "La Radiance est une divinité de lumière oubliée par les insectes d'Hallownest au profit du Roi pâle. L'Infection est sa manière de reprendre leurs esprits à travers leurs rêves.",
-    },
-    {
-      id: "godhome", title: "La Maison des Dieux", wiki: "Godhome",
-      when: [{ k: "bossDoorStateTier5", obj: "completed" }],
-      lock: "Terminer le Panthéon d'Hallownest",
-      text: "Les Chercheurs de Dieux ont parcouru les royaumes pour trouver un dieu digne d'être vénéré. Au sommet du Panthéon d'Hallownest, ils découvrent quelque chose d'inattendu.",
-    },
-  ];
-
-  /* ----------------------------- Web of characters ----------------------------- */
-  // Nodes appear once one of their `when` conditions is met. x / y in a 900 x 560 view box.
-  const NODES = [
-    { id: "knight", name: "Le Chevalier", glyph: "♞", x: 330, y: 470, color: "#e9e6dc", when: [], always: true,
-      text: "Un vaisseau silencieux revenu à Hallownest. Né du Vide, il porte en lui la même nature que le Hollow Knight." },
-    { id: "radiance", name: "La Radiance", glyph: "✺", x: 450, y: 62, color: "#ffd38f", when: [{ k: "killedHollowKnight" }, { k: "killedFinalBoss" }],
-      text: "Une divinité de lumière, oubliée quand le Roi pâle s'est imposé. L'Infection est sa façon de reprendre les esprits par les rêves." },
-    { id: "paleKing", name: "Le Roi pâle", glyph: "♔", x: 300, y: 200, color: "#f4efe6", when: [{ k: "gotKingFragment" }, { k: "metQueen" }, { k: "lurienDefeated" }],
-      text: "Le Wyrm devenu roi, qui a donné aux insectes l'esprit et le royaume d'Hallownest. Pour vaincre l'Infection, il a créé les vaisseaux." },
-    { id: "whiteLady", name: "La Dame Blanche", glyph: "❀", x: 120, y: 175, color: "#e9e6dc", when: [{ k: "metQueen" }],
-      text: "L'épouse du Roi pâle, retirée dans les Jardins de la Reine. Elle détient la moitié de l'Âme-royale." },
-    { id: "hollowKnight", name: "Le Hollow Knight", glyph: "♜", x: 575, y: 245, color: "#cfd6e4", when: [{ k: "openedBlackEggDoor" }, { k: "killedHollowKnight" }],
-      text: "Le vaisseau choisi, scellé dans le Temple de l'Oeuf Noir pour contenir la Radiance. Le sceau s'affaiblit." },
-    { id: "hornet", name: "Hornet", glyph: "✦", x: 160, y: 335, color: "#ef8b8b", when: [{ k: "hornet1Defeated" }],
-      text: "La protectrice d'Hallownest. Elle met le Chevalier à l'épreuve, puis l'aide à sa manière." },
-    { id: "lurien", name: "Lurien", glyph: "◉", x: 440, y: 360, color: "#6fd3c4", when: [{ k: "lurienDefeated" }],
-      text: "Le Veilleur de la Cité des Larmes, l'un des trois Rêveurs qui maintiennent le sceau." },
-    { id: "monomon", name: "Monomon", glyph: "◎", x: 610, y: 405, color: "#6fd3c4", when: [{ k: "monomonDefeated" }],
-      text: "L'Érudite des Brumes-canyon, la deuxième Rêveuse. Quirrel l'a servie." },
-    { id: "herrah", name: "Herrah", glyph: "◈", x: 780, y: 330, color: "#6fd3c4", when: [{ k: "hegemolDefeated" }],
-      text: "La Bête du Nid-profond, troisième Rêveuse. Elle a accepté ce rôle en échange d'un enfant : Hornet." },
-    { id: "seer", name: "La Voyante", glyph: "☾", x: 720, y: 110, color: "#d7a4ff", when: [{ k: "metMoth" }],
-      text: "La dernière de la tribu des papillons, qui vénérait jadis la Radiance avant de la renier." },
-    { id: "quirrel", name: "Quirrel", glyph: "❖", x: 790, y: 480, color: "#9fb4ff", when: [{ k: "metQuirrel" }],
-      text: "Un voyageur sans mémoire, qui la retrouve aux Archives de l'Érudite : il était au service de Monomon." },
-    { id: "grimm", name: "Grimm", glyph: "♨", x: 110, y: 485, color: "#ff4b5c", when: [{ k: "metGrimm" }],
-      text: "Le maître d'une troupe venue d'ailleurs, qui propose au Chevalier de prendre part à son Rituel." },
-  ];
-  const LINKS = [
-    ["paleKing", "whiteLady", "époux"],
-    ["paleKing", "hornet", "père"],
-    ["herrah", "hornet", "mère"],
-    ["paleKing", "hollowKnight", "l'a choisi"],
-    ["paleKing", "radiance", "rivaux"],
-    ["hollowKnight", "radiance", "la retient"],
-    ["knight", "hollowKnight", "nés du Vide"],
-    ["lurien", "hollowKnight", "scelle"],
-    ["monomon", "hollowKnight", "scelle"],
-    ["herrah", "hollowKnight", "scelle"],
-    ["seer", "radiance", "l'a reniée"],
-    ["quirrel", "monomon", "l'a servie"],
-    ["whiteLady", "knight", "Âme-royale"],
-    ["grimm", "knight", "le Rituel"],
-  ];
-
   function test(pd, s) {
     const v = pd[s.k];
     if (s.obj) return !!(v && v[s.obj]);
@@ -313,8 +211,6 @@
   function keys() {
     const set = new Set();
     for (const q of QUESTS) for (const s of q.steps) set.add(s.k);
-    for (const r of REVELATIONS) for (const s of r.when) set.add(s.k);
-    for (const n of NODES) for (const s of n.when) set.add(s.k);
     return [...set];
   }
 
@@ -325,5 +221,5 @@
     return out;
   }
 
-  global.HKLore = { QUESTS, REVELATIONS, NODES, LINKS, test, keys, pick };
+  global.HKLore = { QUESTS, test, keys, pick };
 })(typeof window !== "undefined" ? window : globalThis);

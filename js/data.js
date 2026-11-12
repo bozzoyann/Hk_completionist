@@ -327,10 +327,9 @@
       ],
     },
     {
-      id: "counters", title: "Prérequis : Essences et stations", extra: true, required: true, icon: "∑",
-      desc: "2400 Essences pour les derniers mots de la Voyante, et toutes les stations pour la Tanière aux Coléoptères.",
+      id: "counters", title: "Prérequis : stations de Coléoptère", extra: true, required: true, icon: "∑",
+      desc: "Toutes les stations sont nécessaires pour la Tanière aux Coléoptères. Pour l'Essence (2400 pour la Voyante), voir la carte en mode Essence.",
       counters: [
-        { id: "essence", name: "Essences (paliers de la Voyante)", max: 2400, wiki: "Essence", value: (pd) => pd.dreamOrbs || 0 },
         { id: "stags", name: "Stations de Coléoptère", max: 11, wiki: "Stag_Station", value: (pd) => STAGS.filter((k) => pd[k] === true).length },
       ],
     },
