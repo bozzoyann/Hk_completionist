@@ -114,9 +114,14 @@
     const shopFlags = {};
     for (const f of (window.HKFeatures ? HKFeatures.SHOP_FLAGS : [])) shopFlags[f] = pd[f] === true;
     const relics = [1, 2, 3, 4].map((i) => pd["trinket" + i] || 0);
+    // Geo rocks still holding Geo in visited rooms, by area
+    const geoRocks = {};
+    for (const r of (raw.sceneData && raw.sceneData.geoRocks) || []) {
+      if (r.hitsLeft > 0) { const a = sceneArea(r.sceneName); geoRocks[a] = (geoRocks[a] || 0) + 1; }
+    }
     const seer = { d1: pd.dreamReward1 === true, d2: pd.dreamReward2 === true, d3: pd.dreamReward3 === true, c30: pd.gotCharm_30 === true, d5: pd.dreamReward5 === true,
       gate: pd.hasDreamGate === true, d6: pd.dreamReward6 === true, d7: pd.dreamReward7 === true, awoken: pd.dreamNailUpgraded === true, moth: pd.mothDeparted === true };
-    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics, seer,
+    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics, seer, geoRocks, bankerTheft: pd.bankerTheft || 0,
       bank: pd.bankerAccountPurchased ? pd.bankerBalance || 0 : 0 };
     // Achievements
     if (window.HKFeatures) {
@@ -1049,6 +1054,58 @@
     return { groups, need, optGroups, needOpt, relicGeo, have };
   }
 
+
+  /* -------------------------------- Geo farming -------------------------------- */
+
+  // Area of a room from its scene name
+  const SCENE_AREAS = [
+    [/^Tutorial/, "Passe du Roi", "King's Pass"], [/^Town|^Room_(Town|shop|mapper|Bretta|Jinn|Sly)/i, "Dirtmouth", "Dirtmouth"],
+    [/^Crossroads/, "Routes Oubliées", "Forgotten Crossroads"], [/^Fungus1_28|^Cliffs/, "Falaises Hurlantes", "Howling Cliffs"],
+    [/^Fungus1/, "Vertchemin", "Greenpath"], [/^Fungus2/, "Caverne Nocive", "Fungal Wastes"],
+    [/^Fungus3/, "Jardins de la Reine / Brumes-canyon", "Queen's Gardens / Fog Canyon"], [/^Ruins|^Room_(nailsmith|Mansion)/, "Cité des Larmes", "City of Tears"],
+    [/^Waterways/, "Voies d'Eau Royales", "Royal Waterways"], [/^Mines/, "Mont Cristal", "Crystal Peak"],
+    [/^RestingGrounds/, "Repos Éternel", "Resting Grounds"], [/^Deepnest_East/, "Frontières du Royaume", "Kingdom's Edge"],
+    [/^Deepnest/, "Nid-profond", "Deepnest"], [/^Abyss/, "Bassin Ancestral / Abysses", "Ancient Basin / Abyss"],
+    [/^Hive/, "La Ruche", "The Hive"], [/^Room_Colosseum/, "Colisée des Fous", "Colosseum of Fools"],
+    [/^White_Palace/, "Palais Blanc", "White Palace"], [/^GG_/, "Maison des Dieux", "Godhome"],
+  ];
+  function sceneArea(scene) {
+    const i = SCENE_AREAS.findIndex(([re]) => re.test(scene));
+    return i < 0 ? "x" : String(i);
+  }
+  function areaLabel(key) {
+    const en = window.HKI18n && HKI18n.lang === "en";
+    const a = SCENE_AREAS[+key];
+    return a ? (en ? a[2] : a[1]) : (en ? "Other" : "Autre");
+  }
+
+  function geoGuide() {
+    const sv = state.save;
+    const st = sv.stats || {};
+    const fmt = (n) => Number(n).toLocaleString("fr-FR");
+    const relicGeo = (sv.relics || [0, 0, 0, 0]).reduce((a, n, i) => a + n * HKFeatures.RELIC_VALUES[i], 0);
+    const relicList = (sv.relics || []).map((n, i) => (n ? `${n} × ${HKFeatures.RELIC_NAMES[i]} (${fmt(HKFeatures.RELIC_VALUES[i])})` : "")).filter(Boolean).join(" · ");
+    const rocks = sv.geoRocks || {};
+    const rockTotal = Object.values(rocks).reduce((a, n) => a + n, 0);
+    const greed = sv.charms && sv.charms.owned.includes(24);
+    const swarm = sv.charms && sv.charms.owned.includes(1);
+    const items = [];
+    if (relicGeo) items.push(["Vendre vos reliques à Lemm", `${fmt(relicGeo)} Geo : ${relicList}. Lemm tient boutique dans la Cité des Larmes.`]);
+    if (rockTotal) items.push(["Casser les rochers à Geo", `${rockTotal} rochers pas encore vidés dans les salles déjà visitées : ` +
+      Object.entries(rocks).sort((a, b) => b[1] - a[1]).map(([z, n]) => `${areaLabel(z)} (${n})`).join(", ") + "."]);
+    if (sv.bankerTheft >= 1 && (sv.bank || 0) > 0) items.push(["Récupérer votre Geo volé", "Millibelle s'est enfuie avec vos économies : retrouvez-la dans la Maison du Plaisir (Cité des Larmes) et frappez-la pour récupérer votre Geo."]);
+    if (st.steelSoul && st.rancidEggs) items.push(["Vendre vos oeufs rances à Jinn", `${st.rancidEggs} oeuf(s), environ 290 à 449 Geo chacun. Jinn remplace Jiji à Dirtmouth en mode Âme d'acier.`]);
+    items.push(["Équiper Avarice fragile", (greed ? "Vous l'avez. " : "Mangepatte la vend 250 Geo (Caverne Nocive). ") +
+      "Les ennemis lâchent de 20 à 100 % de Geo en plus. Ajoutez Essaim cueilleur" + (swarm ? " (vous l'avez)" : "") + " pour tout ramasser automatiquement."]);
+    items.push(["Rejouer l'Épreuve du Conquérant", "Entrée 450 Geo, environ 2 000 Geo à chaque victoire : la méthode la plus rentable en fin de partie."]);
+    items.push(["Farmer des ennemis qui rapportent beaucoup", "Début de partie : Chevaliers Moussus (Vertchemin). Ensuite : la salle au-dessus de la Station du Roi (Cité des Larmes), et les Grands Sautilleurs près du Colisée (Frontières du Royaume). Rechargez la zone en sortant puis en revenant."]);
+    return `<details class="geo-guide" open>
+      <summary>Gagner du Geo</summary>
+      <ol>${items.map(([t, d]) => `<li><b>${esc(t)}</b><span>${esc(d)}</span></li>`).join("")}</ol>
+      <p class="small muted">Prix des reliques et des boutiques : fichiers du jeu. Gains d'Avarice, de l'Épreuve du Conquérant, de Jinn et lieux de farm : guides de la communauté, valeurs approximatives.</p>
+    </details>`;
+  }
+
   /* -------------------------------- Notifications -------------------------------- */
 
   function chime() {
@@ -1187,6 +1244,7 @@
           <details><summary>Détail des achats optionnels</summary>${detail(b.optGroups)}</details>` : ""}
         </div>`;
       })()}
+      ${geoGuide()}
       <div class="equipped">
         <small>Charmes équipés</small>
         <div>${st.equipped.length ? st.equipped.map((c) => `<span>${esc(c)}</span>`).join("") : `<span class="muted">Aucun</span>`}</div>

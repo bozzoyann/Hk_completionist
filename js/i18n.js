@@ -547,6 +547,18 @@
     "Spectres hurleurs": "Howling Wraiths", "Cri des abysses": "Abyss Shriek",
     "Valeurs tirées du code du jeu (vitesses, portée, Âme) et du wiki de la communauté (dégâts de la Force, de la Fureur et des sorts, Bénédiction de Joni).":
       "Values from the game's code (speeds, range, SOUL) and the community wiki (Strength, Fury and spell damage, Joni's Blessing).",
+    "Gagner du Geo": "Earning Geo", "Vendre vos reliques à Lemm": "Sell your relics to Lemm", "Casser les rochers à Geo": "Break the Geo rocks",
+    "Récupérer votre Geo volé": "Get your stolen Geo back", "Vendre vos oeufs rances à Jinn": "Sell your Rancid Eggs to Jinn",
+    "Équiper Avarice fragile": "Equip Fragile Greed", "Rejouer l'Épreuve du Conquérant": "Replay the Trial of the Conqueror",
+    "Farmer des ennemis qui rapportent beaucoup": "Farm rewarding enemies",
+    "Millibelle s'est enfuie avec vos économies : retrouvez-la dans la Maison du Plaisir (Cité des Larmes) et frappez-la pour récupérer votre Geo.":
+      "Millibelle ran off with your savings: find her in the Pleasure House (City of Tears) and hit her to get your Geo back.",
+    "Entrée 450 Geo, environ 2 000 Geo à chaque victoire : la méthode la plus rentable en fin de partie.":
+      "450 Geo to enter, about 2,000 Geo per win: the most rewarding method late in the game.",
+    "Début de partie : Chevaliers Moussus (Vertchemin). Ensuite : la salle au-dessus de la Station du Roi (Cité des Larmes), et les Grands Sautilleurs près du Colisée (Frontières du Royaume). Rechargez la zone en sortant puis en revenant.":
+      "Early game: Moss Knights (Greenpath). Later: the room above King's Station (City of Tears), and the Great Hoppers near the Colosseum (Kingdom's Edge). Reset the area by leaving and coming back.",
+    "Prix des reliques et des boutiques : fichiers du jeu. Gains d'Avarice, de l'Épreuve du Conquérant, de Jinn et lieux de farm : guides de la communauté, valeurs approximatives.":
+      "Relic and shop prices: game files. Fragile Greed, Trial of the Conqueror, Jinn gains and farming spots: community guides, approximate values.",
     "Langue": "Language", "de jeu": "played", "Âme d'acier": "Steel Soul", "mode classique": "classic mode", "Progression manuelle": "Manual progress",
     "Charmes": "Charms", "Larves": "Grubs", "Journal": "Journal", "Ma progression Hollow Knight": "My Hollow Knight progress",
   };
@@ -559,6 +571,11 @@
     [/^Version (\d+) du (.+)$/, "Version $1 of $2"],
     [/^(.+) \((.+) à 1 masque\)$/, "$1 ($2 on your last mask)"],
     [/^(\d+),(\d+)( s)?$/, "$1.$2$3"],
+    [/^([\d\s ]+) Geo : (.+)\. Lemm tient boutique dans la Cité des Larmes\.$/, (m, n, list) => `${n} Geo: ${list.replace(/Journal d'un voyageur/g, "Wanderer's Journal").replace(/Sceau d'Hallownest/g, "Hallownest Seal").replace(/Idole du roi/g, "King's Idol").replace(/Oeuf arcanique/g, "Arcane Egg")}. Lemm has his shop in the City of Tears.`],
+    [/^(\d+) rochers pas encore vidés dans les salles déjà visitées : (.+)\.$/, "$1 rocks not yet emptied in rooms already visited: $2."],
+    [/^(\d+) oeuf\(s\), environ 290 à 449 Geo chacun\. Jinn remplace Jiji à Dirtmouth en mode Âme d'acier\.$/, "$1 egg(s), about 290 to 449 Geo each. Jinn replaces Jiji in Dirtmouth in Steel Soul mode."],
+    [/^(Vous l'avez\. |Mangepatte la vend 250 Geo \(Caverne Nocive\)\. )Les ennemis lâchent de 20 à 100 % de Geo en plus\. Ajoutez Essaim cueilleur( \(vous l'avez\))? pour tout ramasser automatiquement\.$/,
+      (m, a, b) => (a.startsWith("Vous") ? "You have it. " : "The Leg Eater sells it for 250 Geo (Fungal Wastes). ") + "Enemies drop 20 to 100% more Geo. Add Gathering Swarm" + (b ? " (you have it)" : "") + " to pick everything up automatically."],
     [/^(\d+) %$/, "$1%"],
     [/^(\d+) \/ (\d+) étapes clés franchies$/, "$1 / $2 key milestones done"],
     [/^(\d+) \/ (\d+) zones complètes · (\d+) \/ (\d+) objets$/, "$1 / $2 areas complete · $3 / $4 items"],
