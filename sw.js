@@ -2,7 +2,7 @@
  * Offline support: the app shell is cached on install and served from the cache,
  * then refreshed in the background (stale-while-revalidate). Google Fonts are cached at runtime.
  */
-const VERSION = "hkc-v1";
+const VERSION = "hkc-v2";
 const SHELL = [
   "./", "index.html", "lore.html", "css/style.css", "favicon.svg", "manifest.webmanifest",
   "js/aes.js", "js/save.js", "js/data.js", "js/journal-data.js", "js/extras.js", "js/app.js",

@@ -25,7 +25,7 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 - **Nouveautés** : en rechargeant une sauvegarde, un encadré liste ce qui a été obtenu depuis la précédente, avec le % gagné.
 - Filtre « Objets optionnels » pour masquer ce qui n'est pas nécessaire au 112 % (les prérequis restent affichés).
 - Fond animé (particules d'âme, lumaflies, brume), désactivé si le système demande moins d'animations.
-- Logo : déposez une image `img/logo.png` pour remplacer le logo dessiné.
+- Logo : voir `img/README.md` pour utiliser une image à la place du logo dessiné.
 - **Journal du chasseur** : chaque créature (noms officiels), découverte ou non, et le nombre de victoires restantes pour compléter ses notes.
 - **Larves et racines de rêve** : les 46 larves et 15 racines, chacune avec sa zone, cochées depuis la sauvegarde.
 - **Image récapitulative** à partager (onglet Statistiques).
