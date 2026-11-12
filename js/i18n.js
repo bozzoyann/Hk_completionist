@@ -482,6 +482,10 @@
     "🔗 Lien de partage copié dans le presse-papiers.": "🔗 Share link copied to the clipboard.",
     "Suivi en direct actif : la page se met à jour à chaque sauvegarde du jeu (banc, changement de zone…).": "Live watch on: the page updates every time the game saves (bench, area change…).",
     "Hollow Knight": "Hollow Knight", "Completionist": "Completionist",
+    "✧ Lore et rencontres": "✧ Lore & encounters", "Lore et rencontres": "Lore & encounters",
+    "Les personnages rencontrés, les conversations qui ont eu lieu et les grandes révélations, d'après votre sauvegarde. Les résumés sont rédigés pour ce site ; les dialogues complets du jeu sont sur le wiki (lien sur chaque carte).":
+      "The characters you met, the conversations that happened and the great revelations, according to your save. Summaries are written for this site; the game's full dialogue is on the wiki (link on each card).",
+    "Chargez une sauvegarde pour révéler les personnages et les quêtes.": "Load a save to reveal the characters and quests.",
     "Langue": "Language", "de jeu": "played", "Âme d'acier": "Steel Soul", "mode classique": "classic mode", "Progression manuelle": "Manual progress",
     "Charmes": "Charms", "Larves": "Grubs", "Journal": "Journal", "Ma progression Hollow Knight": "My Hollow Knight progress",
   };

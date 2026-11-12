@@ -49,21 +49,11 @@
     $("#webCount").textContent = `${count} / ${NODES.length} personnages révélés`;
   }
 
-  function setSource() {
-    const save = LS.get("hk.save", null);
-    const el = $("#loreSource");
-    if (!pd) {
-      el.textContent = "Aucune sauvegarde chargée : chargez-en une ici ou sur le tracker.";
-      el.className = "status";
-    } else {
-      el.textContent = "✔ Données de " + (save && save.meta && save.meta.fileName ? save.meta.fileName : "votre sauvegarde") +
-        (save && save.meta && save.meta.loadedAt ? ", chargée le " + new Date(save.meta.loadedAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "");
-      el.className = "status ok";
-    }
-  }
-
   function render() {
-    const data = pd || {};
+    pd = LS.get("hk.lore", null);
+    const shared = /#p=/.test(location.hash);
+    $("#loreEmpty").hidden = !!pd && !shared;
+    const data = shared ? {} : pd || {};
     renderWeb(data);
     $("#reveals").innerHTML = REVELATIONS.map((r) => {
       const ok = r.all ? r.when.every((s) => test(data, s)) : r.when.some((s) => test(data, s));
@@ -123,28 +113,5 @@
     render();
   });
 
-  $("#loreFile").addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    try {
-      const raw = HKSave.decodeSave(await file.arrayBuffer());
-      pd = pick(raw.playerData || raw);
-      LS.set("hk.lore", pd);
-      setSource();
-      $("#loreSource").textContent = "✔ " + file.name + " chargé";
-      render();
-    } catch (err) {
-      $("#loreSource").textContent = "✖ Impossible de lire la sauvegarde : " + err.message;
-      $("#loreSource").className = "status err";
-    }
-    e.target.value = "";
-  });
-
-  document.querySelectorAll("[data-lang]").forEach((b) => {
-    b.classList.toggle("on", window.HKI18n && b.dataset.lang === HKI18n.lang);
-    b.addEventListener("click", () => window.HKI18n && HKI18n.setLang(b.dataset.lang));
-  });
-
-  setSource();
-  render();
+  window.HKLoreView = { render };
 })();

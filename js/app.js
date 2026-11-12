@@ -363,6 +363,7 @@
     if (state.tab === "achievements") renderAchievements();
     if (state.tab === "godhome") renderGodhome();
     if (state.tab === "builds") renderBuilds();
+    if (state.tab === "lore" && window.HKLoreView) HKLoreView.render();
     renderCoherence();
     renderShareBanner();
   }
@@ -1153,6 +1154,7 @@
       LS.del("hk.save");
       LS.del("hk.news");
       LS.del("hk.history");
+      LS.del("hk.lore");
       stopWatching();
       setStatus("Sauvegarde retirée. Mode manuel.", "");
     } else {
@@ -1348,6 +1350,10 @@
     });
   });
 
+  if (location.hash === "#lore") {
+    state.tab = "lore";
+    history.replaceState(null, "", location.pathname);
+  }
   const shared = readShareLink();
   if (shared) {
     state.shared = true;

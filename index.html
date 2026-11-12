@@ -167,7 +167,7 @@
       <button role="tab" data-tab="godhome">☀ Salle des Dieux</button>
       <button role="tab" data-tab="builds">◈ Builds de charmes</button>
       <button role="tab" data-tab="stats">∑ Statistiques</button>
-      <a class="tabs-link" href="lore.html">✧ Lore et rencontres ↗</a>
+      <button role="tab" data-tab="lore" class="tab-lore">✧ Lore et rencontres</button>
       <label class="toggle opt-toggle" title="Clés simples en trop, laissez-passer, racines de rêve, boss optionnels et fins : ce qui n'est pas nécessaire pour le 112 %"><input type="checkbox" id="optional" checked> Objets optionnels</label>
     </div>
 
@@ -238,6 +238,29 @@
       <div id="builds-body"></div>
     </section>
 
+    <section class="panel" id="panel-lore" hidden>
+      <div class="tree-head">
+        <div>
+          <h2>Lore et rencontres</h2>
+          <p class="small muted">Les personnages rencontrés, les conversations qui ont eu lieu et les grandes révélations, d'après votre sauvegarde. Les résumés sont rédigés pour ce site ; les dialogues complets du jeu sont sur le wiki (lien sur chaque carte).</p>
+        </div>
+        <label class="toggle"><input type="checkbox" id="spoilerToggle"> Afficher les révélations sans flou</label>
+      </div>
+      <p class="muted" id="loreEmpty" hidden>Chargez une sauvegarde pour révéler les personnages et les quêtes.</p>
+      <div class="web-head">
+        <h3 class="lore-h2">La toile d'Hallownest</h3>
+        <strong id="webCount"></strong>
+      </div>
+      <div class="web-layout">
+        <div class="web-wrap"><div id="web"></div></div>
+        <aside class="web-card" id="webCard" aria-live="polite"></aside>
+      </div>
+      <h3 class="lore-h2">Révélations</h3>
+      <div class="reveal-grid" id="reveals"></div>
+      <h3 class="lore-h2">Quêtes et rencontres</h3>
+      <div class="quest-grid" id="quests"></div>
+    </section>
+
     <section class="panel" id="panel-stats" hidden>
       <div id="stats-body"></div>
     </section>
@@ -257,6 +280,7 @@
   <script src="js/extras.js"></script>
   <script src="js/lore-data.js"></script>
   <script src="js/i18n.js"></script>
+  <script src="js/lore.js"></script>
   <script src="js/app.js"></script>
   <script src="js/background.js"></script>
 </body>

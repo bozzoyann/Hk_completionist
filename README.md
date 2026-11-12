@@ -31,7 +31,7 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 - **Image récapitulative** à partager (onglet Statistiques).
 - **Thème Âme d'acier** quand la sauvegarde est en mode Âme d'acier.
 - **Hors ligne** : le site s'installe comme une application et fonctionne sans connexion.
-- **Page Lore** (`lore.html`) : quêtes et rencontres des personnages suivies depuis la save, et révélations résumées (floutées par défaut).
+- **Onglet Lore et rencontres** : toile des personnages, quêtes et rencontres suivies depuis la save, révélations résumées (floutées par défaut).
 - **Succès** déduits de la sauvegarde, **Salle des Dieux** (niveau atteint pour chaque statue), **builds de charmes** avec les coûts réels.
 - **Budget en Geo** : ce qu'il reste à acheter pour le 112 % comparé au Geo, à la banque et aux reliques.
 - **Alerte de cohérence** si le total du site diffère du % enregistré par le jeu.
@@ -65,7 +65,7 @@ Pour le déployer, activez GitHub Pages sur la branche, dossier racine.
 - `js/data.js` : liste des objets, champs de la save, indices et barème
 - `js/extras.js` : couleurs, ordre de progression, arbre et statistiques
 - `js/journal-data.js` : entrées du Journal du chasseur (généré depuis les données du jeu)
-- `js/lore-data.js`, `js/lore.js`, `lore.html` : page Lore
+- `js/lore-data.js`, `js/lore.js` : onglet Lore (`lore.html` redirige vers cet onglet)
 - `sw.js`, `manifest.webmanifest` : mode hors ligne
 - `js/achievements-data.js`, `js/features-data.js` : succès, statues, achats
 - `js/i18n.js` : version anglaise

@@ -663,3 +663,7 @@ body .recap-row { gap: 8px; flex-wrap: wrap; }
 .lore-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .hero-inner > .lang-switch { order: 3; }
 @media (min-width: 761px) { .hero-inner > .lang-switch { position: absolute; top: -28px; right: 16px; } .hero-inner { position: relative; } .hero { padding-top: 44px; } }
+.tabs button.tab-lore { color: #f3c65a; border-color: rgba(243, 198, 90, .45); background: linear-gradient(180deg, #19171a, var(--bg-2)); }
+.tabs button.tab-lore.on { color: var(--bg); background: #f3c65a; border-color: #f3c65a; }
+#panel-lore .tree-head .toggle { align-self: flex-end; }
+#panel-lore .lore-h2 { font-size: 20px; margin: 22px 0 10px; }
