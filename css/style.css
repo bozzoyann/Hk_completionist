@@ -40,7 +40,7 @@ code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .
 .hero { padding: 36px 0 24px; border-bottom: 1px solid var(--line); }
 .hero-inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
-.logo { width: 88px; height: 88px; flex: none; overflow: visible; filter: drop-shadow(0 0 16px rgba(111, 134, 214, .35)); }
+.logo { width: 104px; height: 104px; flex: none; overflow: visible; filter: drop-shadow(0 0 16px rgba(111, 134, 214, .35)); }
 h1 { font-family: "Cinzel", serif; font-weight: 700; font-size: clamp(24px, 4vw, 36px); margin: 0; letter-spacing: .02em; line-height: 1.1; }
 h1 span { color: var(--accent); font-weight: 500; }
 .tagline { margin: 6px 0 0; color: var(--muted); }
@@ -391,7 +391,7 @@ h1 span { color: var(--accent); font-weight: 500; }
   .map-layout { grid-template-columns: 1fr; }
   .zone-detail { position: static; max-height: none; }
 }
-@media (max-width: 760px) { .logo { width: 60px; height: 60px; } }
+@media (max-width: 760px) { .logo { width: 72px; height: 72px; } }
 
 /* ============================ Animated background ============================ */
 #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
@@ -617,3 +617,40 @@ body .recap-row { gap: 8px; flex-wrap: wrap; }
 .budget-list li { display: flex; flex-direction: column; font-size: 13.5px; }
 .budget-list span { color: var(--muted); }
 .budget-list i { font-style: normal; color: #e8d9a8; }
+
+/* ================================ Lore web ================================ */
+.web-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.web-head strong { font-family: "Cinzel", serif; color: #f3c65a; }
+.web-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
+.web-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); }
+#web svg { display: block; width: 100%; min-width: 640px; height: auto; }
+.wl { stroke: #232a3e; stroke-width: 1.5; stroke-dasharray: 4 6; }
+.wl.on { stroke: color-mix(in srgb, var(--c) 55%, #2a3150); stroke-width: 2; stroke-dasharray: none; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c) 50%, transparent)); }
+.wlabel rect { fill: #121624; stroke: #2c3450; }
+.wlabel text { fill: var(--muted); font: italic 500 11.5px "Inter", sans-serif; text-anchor: middle; }
+.wn { cursor: pointer; outline: none; }
+.wn-glow { fill: none; }
+.wn-dot { fill: #151a28; stroke: #2c3450; stroke-width: 2; }
+.wn-glyph { fill: #4a5270; font: 22px "Inter", sans-serif; text-anchor: middle; }
+.wn-name { fill: #5d6378; font: 600 13px "Cinzel", serif; text-anchor: middle; paint-order: stroke; stroke: var(--bg-2); stroke-width: 4px; }
+.wn.on .wn-dot { fill: color-mix(in srgb, var(--c) 18%, #121624); stroke: var(--c); }
+.wn.on .wn-glyph { fill: var(--c); }
+.wn.on .wn-name { fill: var(--text); }
+.wn.on .wn-glow { fill: color-mix(in srgb, var(--c) 18%, transparent); animation: wnPulse 3.5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.wn.sel .wn-dot { stroke-width: 3.5; filter: drop-shadow(0 0 10px var(--c)); }
+.wn:focus-visible .wn-dot { stroke: var(--text); }
+@keyframes wnPulse { 0%, 100% { opacity: .5; transform: scale(.9); } 50% { opacity: 1; transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .wn.on .wn-glow { animation: none; } }
+.web-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px;
+  display: flex; gap: 14px; align-items: flex-start; position: sticky; top: 12px;
+}
+.web-card h3 { font-family: "Cinzel", serif; margin: 0 0 6px; }
+.web-card p { margin: 0; line-height: 1.6; }
+.web-card p.blur { filter: blur(6px); cursor: pointer; user-select: none; }
+.wc-glyph {
+  --c: #5d6378;
+  width: 52px; height: 52px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 24px;
+  color: var(--c); border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 14%, var(--card));
+}
+@media (max-width: 900px) { .web-layout { grid-template-columns: 1fr; } .web-card { position: static; } }

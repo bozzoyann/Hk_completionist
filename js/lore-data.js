@@ -258,6 +258,51 @@
     },
   ];
 
+  /* ----------------------------- Web of characters ----------------------------- */
+  // Nodes appear once one of their `when` conditions is met. x / y in a 900 x 560 view box.
+  const NODES = [
+    { id: "knight", name: "Le Chevalier", glyph: "♞", x: 330, y: 470, color: "#e9e6dc", when: [], always: true,
+      text: "Un vaisseau silencieux revenu à Hallownest. Né du Vide, il porte en lui la même nature que le Hollow Knight." },
+    { id: "radiance", name: "La Radiance", glyph: "✺", x: 450, y: 62, color: "#ffd38f", when: [{ k: "killedHollowKnight" }, { k: "killedFinalBoss" }],
+      text: "Une divinité de lumière, oubliée quand le Roi pâle s'est imposé. L'Infection est sa façon de reprendre les esprits par les rêves." },
+    { id: "paleKing", name: "Le Roi pâle", glyph: "♔", x: 300, y: 200, color: "#f4efe6", when: [{ k: "gotKingFragment" }, { k: "metQueen" }, { k: "lurienDefeated" }],
+      text: "Le Wyrm devenu roi, qui a donné aux insectes l'esprit et le royaume d'Hallownest. Pour vaincre l'Infection, il a créé les vaisseaux." },
+    { id: "whiteLady", name: "La Dame Blanche", glyph: "❀", x: 120, y: 175, color: "#e9e6dc", when: [{ k: "metQueen" }],
+      text: "L'épouse du Roi pâle, retirée dans les Jardins de la Reine. Elle détient la moitié de l'Âme-royale." },
+    { id: "hollowKnight", name: "Le Hollow Knight", glyph: "♜", x: 575, y: 245, color: "#cfd6e4", when: [{ k: "openedBlackEggDoor" }, { k: "killedHollowKnight" }],
+      text: "Le vaisseau choisi, scellé dans le Temple de l'Oeuf Noir pour contenir la Radiance. Le sceau s'affaiblit." },
+    { id: "hornet", name: "Hornet", glyph: "✦", x: 160, y: 335, color: "#ef8b8b", when: [{ k: "hornet1Defeated" }],
+      text: "La protectrice d'Hallownest. Elle met le Chevalier à l'épreuve, puis l'aide à sa manière." },
+    { id: "lurien", name: "Lurien", glyph: "◉", x: 440, y: 360, color: "#6fd3c4", when: [{ k: "lurienDefeated" }],
+      text: "Le Veilleur de la Cité des Larmes, l'un des trois Rêveurs qui maintiennent le sceau." },
+    { id: "monomon", name: "Monomon", glyph: "◎", x: 610, y: 405, color: "#6fd3c4", when: [{ k: "monomonDefeated" }],
+      text: "L'Érudite des Brumes-canyon, la deuxième Rêveuse. Quirrel l'a servie." },
+    { id: "herrah", name: "Herrah", glyph: "◈", x: 780, y: 330, color: "#6fd3c4", when: [{ k: "hegemolDefeated" }],
+      text: "La Bête du Nid-profond, troisième Rêveuse. Elle a accepté ce rôle en échange d'un enfant : Hornet." },
+    { id: "seer", name: "La Voyante", glyph: "☾", x: 720, y: 110, color: "#d7a4ff", when: [{ k: "metMoth" }],
+      text: "La dernière de la tribu des papillons, qui vénérait jadis la Radiance avant de la renier." },
+    { id: "quirrel", name: "Quirrel", glyph: "❖", x: 790, y: 480, color: "#9fb4ff", when: [{ k: "metQuirrel" }],
+      text: "Un voyageur sans mémoire, qui la retrouve aux Archives de l'Érudite : il était au service de Monomon." },
+    { id: "grimm", name: "Grimm", glyph: "♨", x: 110, y: 485, color: "#ff4b5c", when: [{ k: "metGrimm" }],
+      text: "Le maître d'une troupe venue d'ailleurs, qui propose au Chevalier de prendre part à son Rituel." },
+  ];
+  const LINKS = [
+    ["paleKing", "whiteLady", "époux"],
+    ["paleKing", "hornet", "père"],
+    ["herrah", "hornet", "mère"],
+    ["paleKing", "hollowKnight", "l'a choisi"],
+    ["paleKing", "radiance", "rivaux"],
+    ["hollowKnight", "radiance", "la retient"],
+    ["knight", "hollowKnight", "nés du Vide"],
+    ["lurien", "hollowKnight", "scelle"],
+    ["monomon", "hollowKnight", "scelle"],
+    ["herrah", "hollowKnight", "scelle"],
+    ["seer", "radiance", "l'a reniée"],
+    ["quirrel", "monomon", "l'a servie"],
+    ["whiteLady", "knight", "Âme-royale"],
+    ["grimm", "knight", "le Rituel"],
+  ];
+
   function test(pd, s) {
     const v = pd[s.k];
     if (s.obj) return !!(v && v[s.obj]);
@@ -269,6 +314,7 @@
     const set = new Set();
     for (const q of QUESTS) for (const s of q.steps) set.add(s.k);
     for (const r of REVELATIONS) for (const s of r.when) set.add(s.k);
+    for (const n of NODES) for (const s of n.when) set.add(s.k);
     return [...set];
   }
 
@@ -279,5 +325,5 @@
     return out;
   }
 
-  global.HKLore = { QUESTS, REVELATIONS, test, keys, pick };
+  global.HKLore = { QUESTS, REVELATIONS, NODES, LINKS, test, keys, pick };
 })(typeof window !== "undefined" ? window : globalThis);
