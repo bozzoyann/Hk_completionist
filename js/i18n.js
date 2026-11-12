@@ -569,6 +569,15 @@
     "Mangepatte": "Leg Eater", "Vend Avarice fragile : 20 à 100 % de Geo en plus sur les ennemis": "Sells Fragile Greed: 20 to 100% more Geo from enemies",
     "Millibelle, dans la Maison du Plaisir": "Millibelle, in the Pleasure House", "Frappez-la pour récupérer votre Geo volé": "Hit her to get your stolen Geo back",
     "Jinn (Âme d'acier)": "Jinn (Steel Soul)", "Geo": "Geo",
+    "⚙ Réglages": "⚙ Settings", "Indices de localisation": "Location hints", "Noms anglais en second": "French names shown second",
+    "✓ Progression": "✓ Progress", "⌖ Carte": "⌖ Map", "☰ Journal": "☰ Journal", "✦ Défis": "✦ Challenges", "◈ Charmes": "◈ Charms", "✧ Lore": "✧ Lore",
+    "Checklist": "Checklist", "Arbre de progression": "Progression tree", "Vue": "View",
+    "Charger un autre fichier": "Load another file", "Révélations sans flou": "Revelations without blur",
+    "Plan schématique des zones, colorées selon le mode choisi. Cliquez sur une zone pour voir le détail.": "Schematic plan of the areas, coloured by the chosen mode. Click an area for details.",
+    "Chaque créature, où la chasser et le nombre de victoires qu'il reste pour compléter ses notes.": "Every creature, where to hunt it and how many kills are left to complete its notes.",
+    "Composez un build avec les Charmes que vous possédez et voyez les caractéristiques obtenues.": "Build a loadout with the charms you own and see the resulting stats.",
+    "Les personnages rencontrés, les conversations qui ont eu lieu et les grandes révélations, d'après votre sauvegarde. Les résumés sont rédigés pour ce site ; les dialogues complets du jeu sont sur le wiki.":
+      "The characters you met, the conversations that happened and the great revelations, according to your save. Summaries are written for this site; the game's full dialogue is on the wiki.",
     "Langue": "Language", "de jeu": "played", "Âme d'acier": "Steel Soul", "mode classique": "classic mode", "Progression manuelle": "Manual progress",
     "Charmes": "Charms", "Larves": "Grubs", "Journal": "Journal", "Ma progression Hollow Knight": "My Hollow Knight progress",
   };
@@ -576,8 +585,8 @@
   for (const [fr, en] of Object.entries(NAME_EN)) if (!UI[fr]) UI[fr] = en;
 
   const RULES = [
-    [/^Projet de fan, non affilié à Team Cherry\..*/, "Fan project, not affiliated with Team Cherry. Item names come from the game's official text; the « wiki » links lead to "],
-    [/^\.\s*Sans sauvegarde, cliquez sur les éléments pour les cocher à la main.*$/s, ". Without a save, click items to tick them by hand (stored in this browser)."],
+    [/^Projet de fan, non affilié à Team Cherry\..*/, "Fan project, not affiliated with Team Cherry. Official in-game names; the « wiki » links lead to "],
+    [/^\.\s*Sans sauvegarde, cliquez sur les éléments.*$/s, ". Without a save, click checklist items to tick them by hand (stored in this browser)."],
     [/^Version (\d+) du (.+)$/, "Version $1 of $2"],
     [/^(.+) \((.+) à 1 masque\)$/, "$1 ($2 on your last mask)"],
     [/^(\d+),(\d+)( s)?$/, "$1.$2$3"],

@@ -6,38 +6,19 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 
 ## Fonctionnalités
 
-- Lecture des sauvegardes PC/Mac/Linux (en-tête .NET BinaryFormatter + base64 + AES-256-ECB) et des sauvegardes JSON en clair.
-- Calcul du % par catégorie, avec le même barème que le jeu :
-  - Boss 14, Charmes 40, Équipement 14, Clou 4, Arts du clou 3, Sorts 6
-  - Masques 4, Réceptacles 3, Aiguillon des rêves 3, Guerriers 7, Rêveurs 3, Colisée 3
-  - DLC : Troupe Grimm 2, Lifeblood 1, Godmaster 5 (les 40 charmes sont tous dans la section Charmes, 40 %)
-- Affiche aussi le % enregistré par le jeu, le temps de jeu et le Géo.
-- Prérequis du 112 % (ne rapportent pas de % mais sont indispensables) : 46 larves, 2400 Essences, stations de Coléoptère, 6 minerais pâles et clés nécessaires.
-- Vraiment optionnel : clés simples en trop, laissez-passer de tramway, racines de rêve, boss optionnels et fins.
-- **Suivi en direct** (Chrome/Edge) : la page relit la sauvegarde toutes les 3 s et met en évidence les nouveaux objets.
-- Recherche, filtres (tout / manquants / obtenus), indices masquables, sections repliables.
-- Noms officiels de la version française du jeu, avec le nom anglais en dessous (masquable).
-- **Les 112 cases** : une grille où chaque case vaut 1 %, colorée par catégorie (thème propre à chaque DLC).
-- **Carte d'Hallownest** : plan schématique des zones, colorées selon la progression, avec quatre modes : objets, Journal du chasseur (créatures à chasser par zone), Essence (racines de rêve, rêves de guerriers, boss des rêves, paliers de la Voyante) et Geo (rochers à Geo à casser, spots de farm, où vendre et rejouer).
-- **Arbre de progression** : les grandes étapes de la partie reliées par leurs prérequis, avec les prochains objectifs accessibles.
-- **Statistiques** : masques, réceptacles, emplacements de charme, position et Geo de l'ombre, Journal du chasseur, salles visitées, reliques, charmes équipés… (le jeu n'enregistre pas le nombre de morts).
-- Objets et catégories rangés dans l'ordre de progression habituel.
-- **Nouveautés** : en rechargeant une sauvegarde, un encadré liste ce qui a été obtenu depuis la précédente, avec le % gagné.
-- Filtre « Objets optionnels » pour masquer ce qui n'est pas nécessaire au 112 % (les prérequis restent affichés).
-- Fond animé (particules d'âme, lumaflies, brume), désactivé si le système demande moins d'animations.
-- Logo : voir `img/README.md` pour utiliser une image à la place du logo dessiné.
-- **Journal du chasseur** : chaque créature (noms officiels), découverte ou non, et le nombre de victoires restantes pour compléter ses notes.
-- **Larves et racines de rêve** : les 46 larves et 15 racines, chacune avec sa zone, cochées depuis la sauvegarde.
-- **Image récapitulative** à partager (onglet Statistiques).
-- **Thème Âme d'acier** quand la sauvegarde est en mode Âme d'acier.
-- **Hors ligne** : le site s'installe comme une application et fonctionne sans connexion.
-- **Onglet Lore et rencontres** : toile des personnages, quêtes et rencontres suivies depuis la save, révélations résumées (floutées par défaut).
-- **Succès** déduits de la sauvegarde, **Salle des Dieux** (niveau atteint pour chaque statue), **builds de charmes** avec les coûts réels.
-- **Budget en Geo** : ce qu'il reste à acheter pour le 112 % comparé au Geo, à la banque et aux reliques.
-- **Alerte de cohérence** si le total du site diffère du % enregistré par le jeu.
-- **Lien de partage** en lecture seule et **notifications** pendant le suivi en direct.
-- **Version anglaise** (bouton FR / EN).
-- Mode manuel sans sauvegarde : les cases cochées sont gardées dans le `localStorage`.
+La sauvegarde est déchiffrée dans le navigateur (en-tête .NET BinaryFormatter + base64 + AES-256-ECB, ou JSON en clair). Le total suit exactement la formule du jeu, et une alerte prévient si le site et le jeu ne sont pas d'accord.
+
+Les onglets :
+
+- **Progression** : les 112 cases (1 case = 1 %), la checklist par catégorie (recherche, filtres, prérequis du 112 % comme les larves, le minerai pâle et les clés) et l'arbre de progression avec les prochains objectifs.
+- **Carte** : plan schématique d'Hallownest en quatre modes : objets, Journal du chasseur, Essence (racines de rêve, rêves de guerriers, boss des rêves, paliers de la Voyante) et Geo (rochers à casser, spots de farm). Chaque zone liste son contenu, avec un lien vers le wiki.
+- **Journal** : chaque créature, où la chasser et les victoires restantes ; mêmes chiffres que l'écran du jeu.
+- **Défis** : succès déduits de la sauvegarde et Salle des Dieux (Attuned / Ascended / Radiant pour chaque statue).
+- **Charmes** : composer un build avec ses charmes et voir les caractéristiques obtenues (dégâts, portée, vitesse, masques, Âme, sorts…).
+- **Statistiques** : vitalité, ombre, statistiques de la partie, budget en Geo (112 % et complétion totale), guide pour gagner du Geo, image récapitulative et lien de partage.
+- **Lore** : toile des personnages, révélations (floutées) et quêtes suivies depuis la sauvegarde.
+
+Autour : encadré des nouveautés quand on recharge une sauvegarde, suivi en direct du fichier (Chrome / Edge) avec notifications, thème Âme d'acier, version anglaise, mode hors ligne (application installable), fond animé, mode manuel sans sauvegarde. Les réglages (langue, objets optionnels, indices, notifications) sont dans le menu ⚙ Réglages.
 
 ## Emplacement des sauvegardes
 
@@ -60,16 +41,17 @@ Pour le déployer, activez GitHub Pages sur la branche, dossier racine.
 
 ## Structure
 
-- `js/aes.js` : déchiffrement AES-ECB minimal, sans dépendance
-- `js/save.js` : décodage du fichier de sauvegarde
-- `js/data.js` : liste des objets, champs de la save, indices et barème
-- `js/extras.js` : couleurs, ordre de progression, arbre et statistiques
-- `js/journal-data.js` : entrées du Journal du chasseur (généré depuis les données du jeu)
+- `index.html`, `css/style.css` : la page
+- `js/version.js` : numéro de version affiché (incrémenté à chaque mise à jour)
+- `js/aes.js`, `js/save.js` : déchiffrement et décodage de la sauvegarde
+- `js/data.js` : objets suivis, champs de la save, indices et barème du 112 %
+- `js/journal-data.js` : Journal du chasseur (noms, victoires requises, comptage du jeu, zones)
+- `js/achievements-data.js`, `js/features-data.js` : succès, statues, achats, effets des charmes
+- `js/extras.js` : couleurs, ordre de progression, arbre, carte et statistiques
 - `js/lore-data.js`, `js/lore.js` : onglet Lore (`lore.html` redirige vers cet onglet)
-- `sw.js`, `manifest.webmanifest` : mode hors ligne
-- `js/achievements-data.js`, `js/features-data.js` : succès, statues, achats
 - `js/i18n.js` : version anglaise
+- `js/app.js` : interface (chargement, onglets, rendu, suivi en direct)
 - `js/background.js` : fond animé
-- `js/app.js` : interface (chargement, rendu, filtres, suivi en direct)
+- `sw.js`, `manifest.webmanifest` : mode hors ligne et installation
 
 Projet de fan, non affilié à Team Cherry.

@@ -22,7 +22,9 @@
     filter: LS.get("hk.filter", "all"),
     spoilers: LS.get("hk.spoilers", true),
     english: LS.get("hk.english", true),
-    tab: LS.get("hk.tab", "list"),
+    tab: LS.get("hk.tab", "progress"),
+    progressView: LS.get("hk.progressView", "list"),
+    challengeView: LS.get("hk.challengeView", "ach"),
     notify: LS.get("hk.notify", false),
     shared: false,
     mapZone: LS.get("hk.mapZone", null),
@@ -173,8 +175,7 @@
       LS.set("hk.history", history);
       state.save = result;
       LS.set("hk.save", result);
-      setStatus(`✔ ${label} chargé (version ${result.meta.version}) à ${new Date().toLocaleTimeString("fr-FR")}` +
-        (newIds.length ? ` · ${newIds.length} nouveauté(s) !` : prev ? " · rien de nouveau depuis la dernière fois" : ""), "ok");
+      setStatus("", "");
       if (watchTimer && newIds.length) notifyNew(newIds);
       render();
     } catch (err) {
@@ -362,9 +363,17 @@
     $("#statGame").textContent = m && m.gamePct !== null ? m.gamePct + " %" : "–";
     $("#statTime").textContent = m ? fmtTime(m.playTime) : "–";
     $("#statGeo").textContent = m ? m.geo.toLocaleString("fr-FR") : "–";
-    $("#clearBtn").textContent = state.save ? "Retirer la sauvegarde" : "Réinitialiser";
+    // Big drop zone without a save, compact bar with one
+    const loaded = !!state.save && !state.shared;
+    $("#loader").hidden = loaded || state.shared;
+    $("#saveBar").hidden = !loaded;
+    $("#clearBtn").hidden = loaded;
+    if (loaded && m) {
+      const when = m.loadedAt ? new Date(m.loadedAt).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "";
+      $("#saveFile").textContent = `📄 ${m.fileName || "Sauvegarde"}${m.version ? ` · v${m.version}` : ""}${when ? ` · ${when}` : ""}`;
+    }
 
-    for (const btn of document.querySelectorAll(".seg button")) {
+    for (const btn of document.querySelectorAll("#filterSeg button")) {
       btn.classList.toggle("on", btn.dataset.filter === state.filter);
     }
 
@@ -376,12 +385,11 @@
     renderNews();
     renderTabs();
     $("#optional").checked = state.optional;
-    if (state.tab === "tree") renderTree();
+    if (state.tab === "progress" && state.progressView === "tree") renderTree();
     if (state.tab === "stats") renderStats();
     if (state.tab === "map") renderMap();
     if (state.tab === "journal") renderJournal();
-    if (state.tab === "achievements") renderAchievements();
-    if (state.tab === "godhome") renderGodhome();
+    if (state.tab === "challenges") (state.challengeView === "gods" ? renderGodhome : renderAchievements)();
     if (state.tab === "builds") renderBuilds();
     if (state.tab === "lore" && window.HKLoreView) HKLoreView.render();
     renderCoherence();
@@ -452,6 +460,13 @@
       b.setAttribute("aria-selected", on);
     }
     for (const p of document.querySelectorAll(".panel")) p.hidden = p.id !== "panel-" + state.tab;
+    // Sub views
+    const sub = [["#progressView", "progressView", { list: "#view-list", tree: "#view-tree" }],
+      ["#challengeView", "challengeView", { ach: "#view-ach", gods: "#view-gods" }]];
+    for (const [seg, key, views] of sub) {
+      for (const b of document.querySelectorAll(seg + " button")) b.classList.toggle("on", b.dataset.view === state[key]);
+      for (const [v, sel] of Object.entries(views)) $(sel).hidden = v !== state[key];
+    }
   }
 
   /* ------------------------------ Progression tree ----------------------------- */
@@ -1499,7 +1514,12 @@
   });
   // Avoid the browser opening the file when dropped elsewhere.
   window.addEventListener("dragover", (e) => e.preventDefault());
-  window.addEventListener("drop", (e) => e.preventDefault());
+  window.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (e.target.closest && e.target.closest("#drop")) return;
+    const file = e.dataTransfer && e.dataTransfer.files[0];
+    if (file) loadFile(file);
+  });
 
   if (window.showOpenFilePicker) $("#watchBtn").hidden = false;
   $("#watchBtn").addEventListener("click", async () => {
@@ -1514,25 +1534,55 @@
     setStatus("Suivi en direct actif : la page se met à jour à chaque sauvegarde du jeu (banc, changement de zone…).", "ok");
   });
 
+  $("#removeBtn").addEventListener("click", () => {
+    state.save = null;
+    state.fresh.clear();
+    state.news = null;
+    LS.del("hk.save");
+    LS.del("hk.news");
+    LS.del("hk.history");
+    LS.del("hk.lore");
+    stopWatching();
+    setStatus("Sauvegarde retirée. Mode manuel.", "");
+    render();
+  });
+  $("#reloadBtn").addEventListener("click", pickFile);
+
   $("#clearBtn").addEventListener("click", () => {
-    if (state.save) {
-      state.save = null;
-      state.fresh.clear();
-      state.news = null;
-      LS.del("hk.save");
-      LS.del("hk.news");
-      LS.del("hk.history");
-      LS.del("hk.lore");
-      stopWatching();
-      setStatus("Sauvegarde retirée. Mode manuel.", "");
-    } else {
-      if (!state.manual.size || confirm("Effacer toutes les cases cochées à la main ?")) {
-        state.manual.clear();
-        LS.set("hk.manual", []);
-      }
+    if (!state.manual.size || confirm("Effacer toutes les cases cochées à la main ?")) {
+      state.manual.clear();
+      LS.set("hk.manual", []);
     }
     render();
   });
+
+  // Settings popover
+  const settings = $("#settings");
+  $("#settingsBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    settings.hidden = !settings.hidden;
+    $("#settingsBtn").setAttribute("aria-expanded", String(!settings.hidden));
+  });
+  document.addEventListener("click", (e) => {
+    if (!settings.hidden && !e.target.closest("#settings")) {
+      settings.hidden = true;
+      $("#settingsBtn").setAttribute("aria-expanded", "false");
+    }
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !settings.hidden) { settings.hidden = true; $("#settingsBtn").focus(); }
+  });
+
+  // Sub views (Progression: list / tree, Challenges: achievements / Hall of Gods)
+  for (const [seg, key] of [["#progressView", "progressView"], ["#challengeView", "challengeView"]]) {
+    $(seg).addEventListener("click", (e) => {
+      const b = e.target.closest("[data-view]");
+      if (!b) return;
+      state[key] = b.dataset.view;
+      LS.set("hk." + key, state[key]);
+      render();
+    });
+  }
 
   $("#sections").addEventListener("click", (e) => {
     const head = e.target.closest(".card-head");
@@ -1571,8 +1621,10 @@
   });
 
   function goToSection(id) {
-    state.tab = "list";
-    LS.set("hk.tab", "list");
+    state.tab = "progress";
+    state.progressView = "list";
+    LS.set("hk.tab", "progress");
+    LS.set("hk.progressView", "list");
     state.collapsed.delete(id);
     LS.set("hk.collapsed", [...state.collapsed]);
     render();
@@ -1688,8 +1740,8 @@
     if (b) goToSection(b.dataset.sec);
   });
 
-  $(".seg").addEventListener("click", (e) => {
-    const b = e.target.closest("button");
+  $("#filterSeg").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-filter]");
     if (!b) return;
     state.filter = b.dataset.filter;
     LS.set("hk.filter", state.filter);
@@ -1731,6 +1783,13 @@
     state.tab = "lore";
     history.replaceState(null, "", location.pathname);
   }
+  const OLD_TABS = { list: ["progress", "list"], tree: ["progress", "tree"], achievements: ["challenges", "ach"], godhome: ["challenges", "gods"] };
+  if (OLD_TABS[state.tab]) {
+    const [tab, view] = OLD_TABS[state.tab];
+    state.tab = tab;
+    if (tab === "progress") state.progressView = view; else state.challengeView = view;
+  }
+  if (!document.getElementById("panel-" + state.tab)) state.tab = "progress";
   const shared = readShareLink();
   if (shared) {
     state.shared = true;
@@ -1749,8 +1808,5 @@
     b.addEventListener("click", () => window.HKI18n && HKI18n.setLang(b.dataset.lang));
   });
 
-  if (state.save && !state.shared) {
-    setStatus(`Dernière sauvegarde chargée le ${new Date(state.save.meta.loadedAt).toLocaleString("fr-FR")}. Rechargez-la pour mettre à jour.`, "");
-  }
   render();
 })();

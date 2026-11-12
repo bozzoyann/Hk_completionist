@@ -413,11 +413,6 @@
   const STAGS = ["openedTownBuilding", "openedCrossroads", "openedGreenpath", "openedFungalWastes", "openedRuins1",
     "openedRestingGrounds", "openedRuins2", "openedRoyalGardens", "openedDeepnest", "openedHiddenStation", "openedStagNest"];
 
-  function countRoots(raw) {
-    const items = (raw && raw.sceneData && raw.sceneData.persistentBoolItems) || [];
-    // Whispering Roots are stored as "Dream Plant" entries once fully harvested.
-    return items.filter((i) => i.id === "Dream Plant" && i.activated).length;
-  }
 
   // Percentage of a section given the number of done items.
   function sectionPercent(section, doneCount) {

@@ -126,23 +126,6 @@
     ROYAL_QUARTER: "Le Quartier Royal", FINAL_BOSS: "L'Oeuf Noir", WYRMSKIN: "Carapace Abandonnée", DREAM_WORLD: "Rêve",
   };
 
-  // Journal creatures: killed<Name> flags (from the game's PlayerData).
-  const JOURNAL = ("Crawler Buzzer Bouncer Climber Hopper Worm Spitter Hatcher Hatchling ZombieRunner ZombieHornhead ZombieLeaper " +
-    "ZombieBarger ZombieShield ZombieGuard BigBuzzer BigFly Mawlek FalseKnight Roller Blocker PrayerSlug MenderBug MossmanRunner " +
-    "MossmanShaker Mosquito BlobFlyer FungifiedZombie PlantShooter MossCharger MegaMossCharger SnapperTrap MossKnight GrassHopper " +
-    "AcidFlyer AcidWalker MossFlyer MossKnightFat MossWalker InfectedKnight LazyFlyer ZapBug Jellyfish JellyCrawler MegaJellyfish " +
-    "FungoonBaby MushroomTurret Mantis MushroomRoller MushroomBrawler MushroomBaby MantisFlyerChild FungusFlyer FungCrawler MantisLord " +
-    "BlackKnight ElectricMage Mage MageKnight RoyalDandy RoyalCoward RoyalPlumper FlyingSentrySword FlyingSentryJavelin Sentry SentryFat " +
-    "MageBlob GreatShieldZombie JarCollector MageBalloon MageLord GorgeousHusk FlipHopper Flukeman Inflater Flukefly FlukeMother " +
-    "DungDefender CrystalCrawler CrystalFlyer LaserBug BeamMiner ZombieMiner MegaBeamMiner MinesCrawler AngryBuzzer BurstingBouncer " +
-    "BurstingZombie SpittingZombie BabyCentipede BigCentipede CentipedeHatcher LesserMawlek SlashSpider SpiderCorpse ShootSpider " +
-    "MiniSpider SpiderFlyer MimicSpider BeeHatchling BeeStinger BigBee HiveKnight BlowFly CeilingDropper GiantHopper GrubMimic " +
-    "MawlekTurret OrangeScuttler HealthScuttler Pigeon ZombieHive DreamGuard Hornet AbyssCrawler SuperSpitter Sibling PalaceFly EggSac " +
-    "Mummy OrangeBalloon AbyssTendril HeavyMantis TraitorLord MantisHeavyFlyer GardenZombie RoyalGuard WhiteRoyal Oblobble Zote Blobble " +
-    "ColMosquito ColRoller ColFlyingSentry ColMiner ColShield ColWorm ColHopper LobsterLancer GhostAladar GhostXero GhostHu GhostMarmu " +
-    "GhostNoEyes GhostMarkoth GhostGalien WhiteDefender GreyPrince ZotelingBalloon ZotelingHopper ZotelingBuzzer HollowKnight FinalBoss " +
-    "FlameBearerSmall FlameBearerMed FlameBearerLarge Grimm NightmareGrimm FatFluke PaleLurker NailBros Paintmaster Nailsage HollowKnightPrime").split(" ");
-
   /* ----------------------------- Statistics ----------------------------- */
   function charmName(n) {
     for (const s of SECTIONS) {
@@ -173,8 +156,6 @@
       relics, relicsSold,
       rancidEggs: num(pd.rancidEggs),
       eggsSold: num(pd.jinnEggsSold),
-      journal: JOURNAL.filter((n) => pd["killed" + n] === true).length,
-      journalTotal: JOURNAL.length,
       rooms: Array.isArray(pd.scenesVisited) ? pd.scenesVisited.length : 0,
       flowerBroken: num(pd.xunFlowerBrokeTimes),
       greyPrince: num(pd.greyPrinceDefeats),
