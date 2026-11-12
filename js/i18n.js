@@ -543,6 +543,7 @@
   const RULES = [
     [/^Projet de fan, non affilié à Team Cherry\..*/, "Fan project, not affiliated with Team Cherry. Item names come from the game's official text; the « wiki » links lead to "],
     [/^\.\s*Sans sauvegarde, cliquez sur les éléments pour les cocher à la main.*$/s, ". Without a save, click items to tick them by hand (stored in this browser)."],
+    [/^Version (\d+) du (.+)$/, "Version $1 of $2"],
     [/^(\d+) \/ (\d+) étapes clés franchies$/, "$1 / $2 key milestones done"],
     [/^(\d+) \/ (\d+) zones complètes · (\d+) \/ (\d+) objets$/, "$1 / $2 areas complete · $3 / $4 items"],
     [/^À trouver \((\d+)\)$/, "To find ($1)"], [/^Obtenu \((\d+)\)$/, "Obtained ($1)"],

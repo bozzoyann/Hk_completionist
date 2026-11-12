@@ -1,11 +1,11 @@
 /*
- * Offline support: the app shell is cached on install and served from the cache,
- * then refreshed in the background (stale-while-revalidate). Google Fonts are cached at runtime.
+ * Offline support. Site files are loaded from the network first (so a new version shows
+ * up on the next reload) and fall back to the cache when offline. Google Fonts are cached.
  */
-const VERSION = "hkc-v6";
+const VERSION = "hkc-v7";
 const SHELL = [
   "./", "index.html", "lore.html", "css/style.css", "favicon.svg", "manifest.webmanifest",
-  "js/aes.js", "js/save.js", "js/data.js", "js/journal-data.js", "js/achievements-data.js", "js/features-data.js", "js/i18n.js", "js/extras.js", "js/app.js",
+  "js/version.js", "js/aes.js", "js/save.js", "js/data.js", "js/journal-data.js", "js/achievements-data.js", "js/features-data.js", "js/i18n.js", "js/extras.js", "js/app.js",
   "js/background.js", "js/lore-data.js", "js/lore.js", "img/icon-192.png", "img/icon-512.png",
 ];
 
@@ -31,7 +31,18 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     caches.open(VERSION).then(async (cache) => {
-      const cached = await cache.match(req, { ignoreSearch: sameOrigin });
+      if (sameOrigin) {
+        // Network first, bypassing the HTTP cache, then the offline copy
+        try {
+          const res = await fetch(req, { cache: "no-cache" });
+          if (res && res.ok) cache.put(req, res.clone());
+          return res;
+        } catch {
+          const cached = await cache.match(req, { ignoreSearch: true });
+          return cached || Response.error();
+        }
+      }
+      const cached = await cache.match(req);
       const network = fetch(req)
         .then((res) => {
           if (res && (res.ok || res.type === "opaque")) cache.put(req, res.clone());

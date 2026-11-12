@@ -96,7 +96,10 @@
         </div>
       </div>
 
-      <div class="lang-switch" role="group" aria-label="Langue"><button data-lang="fr">FR</button><button data-lang="en">EN</button></div>
+      <div class="top-corner">
+        <div class="lang-switch" role="group" aria-label="Langue"><button data-lang="fr">FR</button><button data-lang="en">EN</button></div>
+        <span class="site-version" id="siteVersion"></span>
+      </div>
       <div class="summary">
         <div class="ring" id="ring" style="--p:0">
           <div class="ring-inner">
@@ -273,10 +276,12 @@
   </main>
 
   <footer class="wrap footer">
+    <p class="small muted footer-version" id="footerVersion"></p>
     <p class="small muted">Projet de fan, non affilié à Team Cherry. Noms officiels de la version française du jeu, avec le nom anglais en dessous. Les liens « wiki » mènent au wiki anglais <a href="https://hollowknight.wiki" target="_blank" rel="noopener">hollowknight.wiki</a>.
       Sans sauvegarde, cliquez sur les éléments pour les cocher à la main (enregistré dans ce navigateur).</p>
   </footer>
 
+  <script src="js/version.js"></script>
   <script src="js/aes.js"></script>
   <script src="js/save.js"></script>
   <script src="js/data.js"></script>

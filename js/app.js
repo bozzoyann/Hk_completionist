@@ -1555,6 +1555,12 @@
     state.news = null;
   }
   $("#notifyToggle").checked = state.notify;
+  if (window.HK_VERSION) {
+    const v = HK_VERSION;
+    const date = new Date(v.date + "T12:00:00").toLocaleDateString(window.HKI18n && HKI18n.lang === "en" ? "en-GB" : "fr-FR");
+    $("#siteVersion").textContent = `v${v.n} · ${date}`;
+    $("#footerVersion").textContent = `Version ${v.n} du ${date}`;
+  }
   document.querySelectorAll("[data-lang]").forEach((b) => {
     b.classList.toggle("on", window.HKI18n && b.dataset.lang === HKI18n.lang);
     b.addEventListener("click", () => window.HKI18n && HKI18n.setLang(b.dataset.lang));
