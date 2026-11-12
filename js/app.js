@@ -82,8 +82,15 @@
     try { stats = HKExtras.computeStats(raw); } catch (e) { console.warn(e); }
     if (stats) {
       const main = (window.HKJournal || []).filter((e) => !e.opt);
-      stats.journal = main.filter((e) => journal[e.k][0]).length;
-      stats.journalTotal = main.length;
+      // Same numbers as the game's journal screen
+      let je = 0, jn = 0, jt = 146;
+      for (const [k, type, de, dn, dt] of window.HKJournalRules || []) {
+        const ok = type === 0 ? pd["killed" + k] === true : typeof pd["kills" + k] === "number" && pd["kills" + k] <= 0;
+        if (ok) { je += de; jn += dn; jt += dt; }
+      }
+      stats.journal = je;
+      stats.journalNotes = jn;
+      stats.journalTotal = jt;
       stats.hunterMark = pd.hasHuntersMark === true;
     }
     // Charms: owned, costs, equipped
@@ -636,8 +643,10 @@
       return left > 0 ? "hunting" : "complete";
     };
     const main = all.filter((e) => !e.opt);
-    const found = main.filter((e) => status(e) !== "unknown").length;
-    const complete = main.filter((e) => status(e) === "complete").length;
+    const sst = state.save.stats || {};
+    const found = sst.journal ?? main.filter((e) => status(e) !== "unknown").length;
+    const complete = sst.journalNotes ?? main.filter((e) => status(e) === "complete").length;
+    const totalEntries = sst.journalTotal ?? main.length;
     const mark = state.save.stats && state.save.stats.hunterMark;
     const f = state.journalFilter || "all";
     const q = state.journalQuery || "";
@@ -657,8 +666,8 @@
     const showOpt = state.optional;
     el.innerHTML = `
       <div class="journal-head">
-        <div class="jh-stat"><strong>${found}<small>/${main.length}</small></strong><span>entrées découvertes</span></div>
-        <div class="jh-stat"><strong>${complete}<small>/${main.length}</small></strong><span>notes complètes</span></div>
+        <div class="jh-stat"><strong>${found}<small>/${totalEntries}</small></strong><span>entrées découvertes</span></div>
+        <div class="jh-stat"><strong>${complete}<small>/${totalEntries}</small></strong><span>notes complètes</span></div>
         <div class="jh-stat ${mark ? "ok" : ""}"><strong>${mark ? "✦" : "–"}</strong><span>${mark ? "Marque du chasseur obtenue" : "Marque du chasseur"}</span></div>
       </div>
       <div class="toolbar journal-tools">
