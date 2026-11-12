@@ -97,7 +97,8 @@
     // Charms: owned, costs, equipped
     const DEFAULT_COSTS = [0, 1, 1, 1, 2, 2, 2, 3, 2, 3, 1, 3, 1, 3, 1, 2, 2, 1, 2, 3, 2, 4, 2, 2, 2, 3, 1, 4, 2, 4, 1, 2, 3, 2, 4, 3, 5, 1, 3, 2, 2];
     const charms = { owned: [], costs: {}, equipped: Array.isArray(pd.equippedCharms) ? pd.equippedCharms : [], slots: pd.charmSlots || 3,
-      royal: pd.royalCharmState || 0, grimmChild: pd.grimmChildLevel || 0 };
+      royal: pd.royalCharmState || 0, grimmChild: pd.grimmChildLevel || 0,
+      base: { nail: pd.nailDamage || 5, masks: pd.maxHealthBase || 5, reserve: pd.MPReserveMax || 0, f: pd.fireballLevel || 0, q: pd.quakeLevel || 0, s: pd.screamLevel || 0 } };
     for (let n = 1; n <= 40; n++) {
       const owned = n === 36 ? (pd.royalCharmState || 0) >= 3 : pd["gotCharm_" + n] === true;
       if (owned) charms.owned.push(n);
@@ -952,6 +953,43 @@
     return it ? it.name.replace(/^#\d+ /, "") : "Charme #" + n;
   }
 
+
+  // Stats of a build, from the save's base values and the equipped charms
+  function buildStats(c, build) {
+    const has = (n) => build.includes(n);
+    const b = c.base || {};
+    const nail = b.nail || 5;
+    const strength = has(25) ? 1.5 : 1;
+    const masksBase = (b.masks || 5) + (has(23) ? 2 : 0);
+    const joni = has(27);
+    const lifeblood = (has(8) ? 2 : 0) + (has(9) ? 4 : 0) + (joni ? Math.round(masksBase * 1.4) : 0);
+    const shaman = has(19);
+    const spells = [];
+    if (b.f >= 1) spells.push([b.f >= 2 ? "Âme d'ombre" : "Esprit vengeur", b.f >= 2 ? 30 : 15, b.f >= 2 ? 40 : 20]);
+    if (b.q >= 1) spells.push([b.q >= 2 ? "Ténèbres descendantes" : "Élan ravageur", b.q >= 2 ? 60 : 35, b.q >= 2 ? 88 : 53]);
+    if (b.s >= 1) spells.push([b.s >= 2 ? "Cri des abysses" : "Spectres hurleurs", b.s >= 2 ? 80 : 39, b.s >= 2 ? 120 : 60]);
+    const dec = (x) => (Number.isInteger(x) ? String(x) : x.toFixed(2).replace(/0$/, "").replace(".", ","));
+    const rows = [
+      ["Dégâts de l'aiguillon", String(nail), dec(nail * strength) + (has(6) ? ` (${dec(nail * (strength + 0.75))} à 1 masque)` : "")],
+      ["Portée de l'aiguillon", "100 %", Math.round((has(13) && has(18) ? 1.4 : has(13) ? 1.25 : has(18) ? 1.15 : 1) * 100) + " %"],
+      ["Délai entre deux attaques", "0,41 s", has(32) ? "0,25 s" : "0,41 s"],
+      ["Masques", String(b.masks || 5), joni ? "convertis en sang-de-vie" : String(masksBase)],
+      ["Masques sang-de-vie", "0", String(lifeblood)],
+      ["Âme par coup", "11", String(11 + (has(20) ? 3 : 0) + (has(21) ? 8 : 0))],
+      ["Âme par coup (réserve)", "6", String(6 + (has(20) ? 2 : 0) + (has(21) ? 6 : 0))],
+      ["Âme quand vous êtes touché", "0", has(3) ? (has(35) ? "25" : "15") : "0"],
+      ["Coût d'un sort", "33", has(33) ? "24" : "33"],
+      ["Soin par Canalisation", "1 masque", joni ? "aucun" : has(34) ? "2 masques" : "1 masque"],
+      ["Vitesse de Canalisation", "normale", joni ? "—" : has(7) && has(34) ? "presque normale" : has(7) ? "≈ 33 % plus rapide" : has(34) ? "plus lente" : "normale"],
+      ["Recharge du dash", "0,6 s", has(31) ? "0,4 s" : "0,6 s"],
+      ["Vitesse de course", "8,3", has(37) ? (has(31) ? "11,5" : "10") : "8,3"],
+      ["Invulnérabilité après un coup", "1,3 s", has(4) ? "1,75 s" : "1,3 s"],
+      ["Charge des Arts de l'Aiguillon", "1,35 s", has(26) ? "0,75 s" : "1,35 s"],
+    ];
+    for (const [name, base, boosted] of spells) rows.push([name, String(base), String(shaman ? boosted : base)]);
+    return rows;
+  }
+
   function renderBuilds() {
     const el = $("#builds-body");
     const c = state.save && state.save.charms;
@@ -976,10 +1014,23 @@
         </div>
       </div>
       <div class="build-current">${state.build.length ? state.build.map((n) => `<button class="chip" data-charm="${n}">${esc(charmLabel(n, c))} <span class="cost">${pips(c.costs[n])}</span> ✕</button>`).join("") : `<span class="muted">Cliquez sur des Charmes ci-dessous pour composer un build.</span>`}</div>
+      <div class="build-stats">
+        <div class="bs-table">
+          <h3 class="journal-sub">Caractéristiques</h3>
+          <table><thead><tr><th></th><th>Sans charme</th><th>Avec ce build</th></tr></thead><tbody>
+            ${buildStats(c, state.build).map(([k, a, v]) => `<tr class="${a !== v ? "chg" : ""}"><th>${esc(k)}</th><td>${esc(a)}</td><td>${esc(v)}</td></tr>`).join("")}
+          </tbody></table>
+        </div>
+        <div class="bs-fx">
+          <h3 class="journal-sub">Effets du build</h3>
+          ${state.build.length ? `<ul>${state.build.map((n) => `<li><b>${esc(charmLabel(n, c))}</b><span>${esc((HKFeatures.CHARM_FX[n] || ["", ""])[window.HKI18n && HKI18n.lang === "en" ? 1 : 0])}</span></li>`).join("")}</ul>` : `<p class="muted small">Aucun Charme dans ce build.</p>`}
+        </div>
+      </div>
       ${builds.length ? `<h3 class="journal-sub">Mes builds</h3><div class="saved-builds">${builds.map((b, i) => `<div class="saved"><button class="link" data-load="${i}">${esc(b.name)}</button><small>${b.charms.map((n) => esc(charmLabel(n, c))).join(", ")}</small><button class="x" data-del="${i}" aria-label="Supprimer">✕</button></div>`).join("")}</div>` : ""}
       <h3 class="journal-sub">Vos Charmes (${c.owned.length}/40)</h3>
-      <div class="charm-grid">${c.owned.map((n) => `<button class="charm${state.build.includes(n) ? " in" : ""}" data-charm="${n}">
-        <b>${esc(charmLabel(n, c))}</b><span class="cost">${pips(c.costs[n])}</span></button>`).join("")}</div>`;
+      <div class="charm-grid">${c.owned.map((n) => `<button class="charm${state.build.includes(n) ? " in" : ""}" data-charm="${n}" title="${esc((HKFeatures.CHARM_FX[n] || ["", ""])[window.HKI18n && HKI18n.lang === "en" ? 1 : 0])}">
+        <b>${esc(charmLabel(n, c))}</b><small>${esc((HKFeatures.CHARM_FX[n] || ["", ""])[window.HKI18n && HKI18n.lang === "en" ? 1 : 0])}</small><span class="cost">${pips(c.costs[n])}</span></button>`).join("")}</div>
+      <p class="small muted">Valeurs tirées du code du jeu (vitesses, portée, Âme) et du wiki de la communauté (dégâts de la Force, de la Fureur et des sorts, Bénédiction de Joni).</p>`;
   }
 
   /* -------------------------------- Geo budget -------------------------------- */

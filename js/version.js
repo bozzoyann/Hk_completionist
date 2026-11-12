@@ -1,2 +1,2 @@
 /* Site version: bumped on every published update, shown in the header and the footer. */
-window.HK_VERSION = { n: 20, date: "2026-11-12" };
+window.HK_VERSION = { n: 21, date: "2026-11-12" };

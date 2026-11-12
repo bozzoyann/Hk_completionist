@@ -735,3 +735,18 @@ body .recap-row { gap: 8px; flex-wrap: wrap; }
 .top-corner { display: flex; align-items: center; gap: 10px; }
 .site-version { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; letter-spacing: .04em; }
 .footer-version { margin: 0 0 6px; }
+
+/* ============================ Build stats ============================ */
+.build-stats { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; margin-top: 4px; }
+.bs-table table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.bs-table th, .bs-table td { padding: 5px 8px; text-align: left; border-bottom: 1px solid var(--line); }
+.bs-table thead th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+.bs-table tbody th { font-weight: 500; color: var(--muted); }
+.bs-table td { color: var(--muted); }
+.bs-table tr.chg th { color: var(--text); }
+.bs-table tr.chg td:last-child { color: #b79cff; font-weight: 600; }
+.bs-fx ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.bs-fx li { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-left: 3px solid #b79cff; border-radius: 10px; padding: 7px 10px; }
+.bs-fx li span { color: var(--muted); font-size: 12.5px; }
+.charm small { color: var(--muted); font-size: 11.5px; line-height: 1.35; }
+@media (max-width: 900px) { .build-stats { grid-template-columns: 1fr; } }
