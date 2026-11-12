@@ -636,6 +636,10 @@
       el.innerHTML = `<p class="muted">Chargez une sauvegarde pour voir votre Journal du chasseur.</p>`;
       return;
     }
+    const en = window.HKI18n && HKI18n.lang === "en";
+    const AREAS = window.HKJournalAreas || {};
+    const ZONES = window.HKJournalZones || {};
+    const areaName = (c) => (AREAS[c] ? AREAS[c][en ? 1 : 0] : c);
     const all = window.HKJournal || [];
     const status = (e) => {
       const [d, left] = j[e.k] || [0, e.n];
@@ -650,36 +654,64 @@
     const mark = state.save.stats && state.save.stats.hunterMark;
     const f = state.journalFilter || "all";
     const q = state.journalQuery || "";
-    const card = (e) => {
+    const showUnknown = LS.get("hk.journalNames", true);
+    const byZone = LS.get("hk.journalByZone", false);
+
+    const visible = (e) => {
+      const st = status(e);
+      if (f !== "all" && f !== st) return false;
+      const zones = (ZONES[e.k] || []).map(areaName).join(" ");
+      return !q || (e.fr + " " + e.en + " " + zones).toLowerCase().includes(q);
+    };
+    const row = (e, withZones = true) => {
       const st = status(e);
       const [, left] = j[e.k] || [0, e.n];
-      if (f !== "all" && f !== st) return "";
-      if (q && !(e.fr + " " + e.en).toLowerCase().includes(q)) return "";
       const done = Math.max(0, e.n - left);
-      const ratio = e.n ? done / e.n : st === "complete" ? 1 : 0;
-      return `<li class="jc ${st}">
-        <div class="jc-name"><b>${st === "unknown" ? "???" : esc(e.fr)}</b>${st !== "unknown" && state.english && e.en !== e.fr ? `<small>${esc(e.en)}</small>` : ""}</div>
-        <div class="jc-state">${st === "unknown" ? "Pas encore rencontré" : st === "complete" ? "Notes complètes ✦" : `Encore ${left} à vaincre`}</div>
-        ${e.n ? `<div class="bar"><i style="width:${ratio * 100}%"></i></div>` : ""}
+      const hidden = st === "unknown" && !showUnknown;
+      const name = hidden ? "???" : e.fr;
+      const zones = (ZONES[e.k] || []).map(areaName).join(" · ");
+      const count = st === "complete" ? "✦" : e.n ? `${st === "unknown" ? 0 : done}/${e.n}` : "";
+      return `<li class="jr ${st}">
+        <i class="jr-dot"></i>
+        <span class="jr-name"><b>${esc(name)}</b>${!hidden && state.english && e.en !== e.fr ? `<small>${esc(e.en)}</small>` : ""}</span>
+        ${withZones ? `<span class="jr-zone" title="${esc(zones)}">${esc(zones)}</span>` : ""}
+        <span class="jr-count" title="${st === "hunting" ? `Encore ${left} à vaincre` : ""}">${count}</span>
+        ${st === "hunting" && e.n ? `<span class="jr-bar"><i style="width:${(done / e.n) * 100}%"></i></span>` : ""}
       </li>`;
     };
-    const showOpt = state.optional;
+    const list = (entries) => {
+      const shown = entries.filter(visible);
+      if (!shown.length) return `<p class="muted small">Aucune créature avec ce filtre.</p>`;
+      if (!byZone) return `<ul class="jlist">${shown.map((e) => row(e)).join("")}</ul>`;
+      const groups = new Map();
+      for (const e of shown) {
+        const z = (ZONES[e.k] || ["?"])[0];
+        if (!groups.has(z)) groups.set(z, []);
+        groups.get(z).push(e);
+      }
+      return [...groups.entries()].sort((a, b) => areaName(a[0]).localeCompare(areaName(b[0]))).map(([z, es]) => {
+        const left = es.filter((e) => status(e) !== "complete").length;
+        return `<section class="jgroup"><h4>${esc(areaName(z))} <small>${left ? `${left} à compléter` : "✦"}</small></h4><ul class="jlist">${es.map((e) => row(e, false)).join("")}</ul></section>`;
+      }).join("");
+    };
+
     el.innerHTML = `
-      <div class="journal-head">
+      <div class="journal-head compact">
         <div class="jh-stat"><strong>${found}<small>/${totalEntries}</small></strong><span>entrées découvertes</span></div>
         <div class="jh-stat"><strong>${complete}<small>/${totalEntries}</small></strong><span>notes complètes</span></div>
         <div class="jh-stat ${mark ? "ok" : ""}"><strong>${mark ? "✦" : "–"}</strong><span>${mark ? "Marque du chasseur obtenue" : "Marque du chasseur"}</span></div>
       </div>
       <div class="toolbar journal-tools">
-        <input type="search" id="journalSearch" placeholder="Rechercher une créature…" value="${esc(q)}" autocomplete="off">
+        <input type="search" id="journalSearch" placeholder="Rechercher une créature ou une zone…" value="${esc(q)}" autocomplete="off">
         <div class="seg" id="journalSeg">
           ${[["all", "Toutes"], ["unknown", "À découvrir"], ["hunting", "À chasser"], ["complete", "Complètes"]].map(([k, l]) => `<button data-jf="${k}" class="${f === k ? "on" : ""}">${l}</button>`).join("")}
         </div>
+        <label class="toggle"><input type="checkbox" id="journalByZone" ${byZone ? "checked" : ""}> Grouper par zone</label>
+        <label class="toggle"><input type="checkbox" id="journalNames" ${showUnknown ? "checked" : ""}> Noms des créatures non rencontrées</label>
       </div>
-      <p class="small muted">Pour obtenir la Marque du chasseur, il faut compléter les notes de toutes les entrées (vaincre chaque créature le nombre de fois demandé), puis retourner voir le Chasseur dans le Vertchemin.</p>
-      <ul class="journal-grid">${main.map(card).join("") || `<li class="muted">Aucune créature avec ce filtre.</li>`}</ul>
-      ${showOpt ? `<h3 class="journal-sub">Entrées supplémentaires</h3><p class="small muted">Boss secrets et contenus additionnels : ils ne comptent pas pour la Marque du chasseur.</p>
-      <ul class="journal-grid">${all.filter((e) => e.opt).map(card).join("")}</ul>` : ""}`;
+      ${list(main)}
+      ${state.optional ? `<h3 class="journal-sub">Entrées supplémentaires <small class="muted">ne comptent pas pour la Marque du chasseur</small></h3>${list(all.filter((e) => e.opt))}` : ""}`;
+
     const input = $("#journalSearch");
     input.addEventListener("input", () => {
       state.journalQuery = input.value.trim().toLowerCase();
@@ -695,8 +727,9 @@
       state.journalFilter = b.dataset.jf;
       renderJournal();
     });
+    $("#journalByZone").addEventListener("change", (e) => { LS.set("hk.journalByZone", e.target.checked); renderJournal(); });
+    $("#journalNames").addEventListener("change", (e) => { LS.set("hk.journalNames", e.target.checked); renderJournal(); });
   }
-
 
   /* ------------------------------ Coherence check ------------------------------ */
 

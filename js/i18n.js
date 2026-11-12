@@ -486,6 +486,9 @@
     "Les personnages rencontrés, les conversations qui ont eu lieu et les grandes révélations, d'après votre sauvegarde. Les résumés sont rédigés pour ce site ; les dialogues complets du jeu sont sur le wiki (lien sur chaque carte).":
       "The characters you met, the conversations that happened and the great revelations, according to your save. Summaries are written for this site; the game's full dialogue is on the wiki (link on each card).",
     "Chargez une sauvegarde pour révéler les personnages et les quêtes.": "Load a save to reveal the characters and quests.",
+    "Rechercher une créature ou une zone…": "Search a creature or an area…", "Grouper par zone": "Group by area",
+    "Noms des créatures non rencontrées": "Names of unmet creatures", "Aucune créature avec ce filtre.": "No creature with this filter.",
+    "ne comptent pas pour la Marque du chasseur": "do not count for the Hunter's Mark",
     "Langue": "Language", "de jeu": "played", "Âme d'acier": "Steel Soul", "mode classique": "classic mode", "Progression manuelle": "Manual progress",
     "Charmes": "Charms", "Larves": "Grubs", "Journal": "Journal", "Ma progression Hollow Knight": "My Hollow Knight progress",
   };
@@ -499,6 +502,7 @@
     [/^(\d+) \/ (\d+) zones complètes · (\d+) \/ (\d+) objets$/, "$1 / $2 areas complete · $3 / $4 items"],
     [/^À trouver \((\d+)\)$/, "To find ($1)"], [/^Obtenu \((\d+)\)$/, "Obtained ($1)"],
     [/^Encore (\d+) à vaincre$/, "$1 more to defeat"],
+    [/^(\d+) à compléter$/, "$1 to complete"],
     [/^Vos Charmes \((\d+)\/40\)$/, "Your charms ($1/40)"],
     [/^(\d+) vendue\(s\) à Lemm$/, "$1 sold to Lemm"], [/^(\d+) vendu\(s\) à Jinn$/, "$1 sold to Jinn"],
     [/^(\d+) fois brisée$/, "broken $1 time(s)"],
