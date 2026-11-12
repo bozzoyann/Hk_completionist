@@ -116,12 +116,16 @@
     const relics = [1, 2, 3, 4].map((i) => pd["trinket" + i] || 0);
     // Geo rocks still holding Geo in visited rooms, by area
     const geoRocks = {};
+    const geoRockZones = {};
     for (const r of (raw.sceneData && raw.sceneData.geoRocks) || []) {
-      if (r.hitsLeft > 0) { const a = sceneArea(r.sceneName); geoRocks[a] = (geoRocks[a] || 0) + 1; }
+      if (r.hitsLeft > 0) {
+        const a = sceneArea(r.sceneName); geoRocks[a] = (geoRocks[a] || 0) + 1;
+        const z = sceneZone(r.sceneName); if (z) geoRockZones[z] = (geoRockZones[z] || 0) + 1;
+      }
     }
     const seer = { d1: pd.dreamReward1 === true, d2: pd.dreamReward2 === true, d3: pd.dreamReward3 === true, c30: pd.gotCharm_30 === true, d5: pd.dreamReward5 === true,
       gate: pd.hasDreamGate === true, d6: pd.dreamReward6 === true, d7: pd.dreamReward7 === true, awoken: pd.dreamNailUpgraded === true, moth: pd.mothDeparted === true };
-    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics, seer, geoRocks, bankerTheft: pd.bankerTheft || 0,
+    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics, seer, geoRocks, geoRockZones, bankerTheft: pd.bankerTheft || 0,
       bank: pd.bankerAccountPurchased ? pd.bankerBalance || 0 : 0 };
     // Achievements
     if (window.HKFeatures) {
@@ -568,9 +572,59 @@
   const essenceOf = (it) => it.essence || ESSENCE_AMOUNTS[it.id] || 0;
   const DREAM_BOSSES = ["falseKnightDreamDefeated", "mageLordDreamDefeated", "infectedKnightDreamDefeated", "whiteDefenderDefeated", "greyPrinceDefeated"];
 
+
+  // Map zone of a room, from its scene name
+  const FOG_ROOMS = /^Fungus3_(0[123]|2[4-8]|30|35|44|47|archive)/;
+  function sceneZone(scene) {
+    if (/^Tutorial|^Town|^Room_(Town|shop|mapper|Bretta|Jinn|Sly)/i.test(scene)) return "dirtmouth";
+    if (/^Crossroads/.test(scene)) return "crossroads";
+    if (/^Fungus1_28|^Cliffs/.test(scene)) return "cliffs";
+    if (/^Fungus1/.test(scene)) return "greenpath";
+    if (/^Fungus2|^Room_Fungus_Shaman/.test(scene)) return "fungal";
+    if (FOG_ROOMS.test(scene)) return "fog";
+    if (/^Fungus3/.test(scene)) return "gardens";
+    if (/^Ruins|^Room_(nailsmith|Mansion)/.test(scene)) return "city";
+    if (/^Waterways|^GG_Pipeway|^Room_GG_Shortcut|^GG_Waterways/.test(scene)) return "waterways";
+    if (/^Mines/.test(scene)) return "peak";
+    if (/^RestingGrounds/.test(scene)) return "resting";
+    if (/^Deepnest_East/.test(scene)) return "edge";
+    if (/^Deepnest/.test(scene)) return "deepnest";
+    if (/^Abyss_(06|08|09|10|12|15|16)/.test(scene)) return "abyss";
+    if (/^Abyss/.test(scene)) return "basin";
+    if (/^Hive/.test(scene)) return "hive";
+    if (/^Room_Colosseum/.test(scene)) return "colosseum";
+    if (/^White_Palace/.test(scene)) return "palace";
+    if (/^GG_/.test(scene)) return "godhome";
+    return null;
+  }
+
+  // Geo opportunities per map zone (community farming spots and places to earn Geo)
+  const GEO_SPOTS = {
+    greenpath: [["Chevaliers Moussus", "Bon spot de début de partie : de bonnes quantités de Geo par ennemi"]],
+    crossroads: [["Carcasses de la défense", "Ennemis solides qui lâchent beaucoup de Geo"]],
+    city: [["Salle au-dessus de la Station du Roi", "Spot de farm reconnu en milieu de partie"],
+      ["Lemm, le chercheur de reliques", "Vendez-lui vos reliques"]],
+    edge: [["Grands Sautilleurs, près du Colisée", "Spot de farm reconnu en fin de partie"]],
+    colosseum: [["Épreuve du Conquérant", "Entrée 450 Geo, environ 2 000 Geo par victoire"]],
+    fungal: [["Mangepatte", "Vend Avarice fragile : 20 à 100 % de Geo en plus sur les ennemis"]],
+  };
+
   // Uniform entries { name, sub, color, done, amount } for a zone in the current map mode
   function zoneEntries(zoneId, mode) {
     const strip = (n) => n.replace(/^#\d+ /, "");
+    if (mode === "geo") {
+      const out = [];
+      const rocks = (state.save && state.save.geoRockZones && state.save.geoRockZones[zoneId]) || 0;
+      if (rocks) out.push({ key: "rocks-" + zoneId, name: `${rocks} rocher${rocks > 1 ? "s" : ""} à Geo à casser`, sub: "Dans les salles déjà visitées", color: "#e8d9a8", done: false, weight: rocks, count: rocks });
+      for (const [name, sub] of GEO_SPOTS[zoneId] || []) out.push({ key: "spot-" + zoneId + name, name, sub, color: "#f3c65a", done: false, weight: 3 });
+      if (zoneId === "city" && state.save && state.save.bankerTheft >= 1 && state.save.bank > 0) {
+        out.push({ key: "millibelle", name: "Millibelle, dans la Maison du Plaisir", sub: "Frappez-la pour récupérer votre Geo volé", color: "#f3c65a", done: false, weight: 3 });
+      }
+      if (zoneId === "dirtmouth" && state.save && state.save.stats && state.save.stats.steelSoul && state.save.stats.rancidEggs) {
+        out.push({ key: "jinn", name: "Jinn (Âme d'acier)", sub: `${state.save.stats.rancidEggs} oeuf(s) rance(s) à vendre, environ 290 à 449 Geo chacun`, color: "#f3c65a", done: false, weight: 3 });
+      }
+      return out;
+    }
     if (mode === "journal") {
       const j = state.save && state.save.journal;
       if (!j) return [];
@@ -696,8 +750,17 @@
     const zones = MAP_ZONES.map((z) => {
       const list = zoneEntries(z.id, mode);
       const done = list.filter((e) => e.done).length;
-      return { ...z, list, done, total: list.length, ratio: list.length ? done / list.length : 0 };
+      const weight = list.reduce((a, e) => a + (e.weight || 0), 0);
+      const count = list.reduce((a, e) => a + (e.count || 1), 0);
+      return { ...z, list, done, total: list.length, weight, count, ratio: list.length ? done / list.length : 0 };
     });
+    // Geo mode: brighter gold where there is more to earn
+    const geoHeat = (w) => {
+      if (!w) return "rgb(70,80,110)";
+      const t = Math.min(1, w / 10);
+      const a = [120, 105, 70], b = [243, 198, 90];
+      return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`;
+    };
     const byId = Object.fromEntries(zones.map((z) => [z.id, z]));
     if (!state.mapZone || !byId[state.mapZone]) {
       const firstMissing = zones.find((z) => z.done < z.total);
@@ -714,19 +777,21 @@
 
     let shapes = "";
     for (const z of zones) {
-      const col = zoneColor(z.ratio);
+      const col = mode === "geo" ? geoHeat(z.weight) : zoneColor(z.ratio);
       const sel = z.id === state.mapZone;
       const pct = Math.round(z.ratio * 100);
       const barW = z.w - 28;
       shapes += `<g class="zone${z.ratio >= 1 ? " full" : ""}${z.dream ? " dream" : ""}${sel ? " sel" : ""}" data-zone="${z.id}" style="--zc:${col}" tabindex="0" role="button" aria-label="${esc(z.name)} : ${z.done} sur ${z.total}">
         <rect class="zone-bg" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="20"/>
-        <rect class="zone-fill" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="20" style="opacity:${0.12 + z.ratio * 0.4}"/>
+        <rect class="zone-fill" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="20" style="opacity:${mode === "geo" ? (z.weight ? 0.15 + Math.min(1, z.weight / 10) * 0.35 : 0.08) : 0.12 + z.ratio * 0.4}"/>
         <text class="zone-name" x="${z.x + 14}" y="${z.y + 26}">${wrapName(z.name, z.w).map((l, i) => `<tspan x="${z.x + 14}" dy="${i ? 17 : 0}">${esc(l)}</tspan>`).join("")}</text>
         ${z.sub ? `<text class="zone-sub" x="${z.x + 14}" y="${z.y + 26 + 16 * wrapName(z.name, z.w).length}">${esc(z.sub)}</text>` : ""}
-        <text class="zone-pct" x="${z.x + z.w - 14}" y="${z.y + z.h - 22}" text-anchor="end">${z.total ? pct + "%" : "—"}</text>
+        ${mode === "geo"
+          ? `<text class="zone-pct" x="${z.x + z.w - 14}" y="${z.y + z.h - 16}" text-anchor="end">${z.total ? "◆ " + z.count : "—"}</text>`
+          : `<text class="zone-pct" x="${z.x + z.w - 14}" y="${z.y + z.h - 22}" text-anchor="end">${z.total ? pct + "%" : "—"}</text>
         <text class="zone-count" x="${z.x + 14}" y="${z.y + z.h - 22}">${z.done}/${z.total}</text>
         <rect class="zone-track" x="${z.x + 14}" y="${z.y + z.h - 14}" width="${barW}" height="4" rx="2"/>
-        <rect class="zone-bar" x="${z.x + 14}" y="${z.y + z.h - 14}" width="${barW * z.ratio}" height="4" rx="2"/>
+        <rect class="zone-bar" x="${z.x + 14}" y="${z.y + z.h - 14}" width="${barW * z.ratio}" height="4" rx="2"/>`}
       </g>`;
     }
 
@@ -745,7 +810,12 @@
     const full = zones.filter((z) => z.ratio >= 1).length;
     const unit = mode === "journal" ? "créatures" : mode === "essence" ? "sources d'Essence" : "objets";
     const active = zones.filter((z) => z.total);
-    $("#mapSummary").textContent = `${active.filter((z) => z.ratio >= 1).length} / ${active.length} zones complètes · ${totalDone} / ${total} ${unit}`;
+    if (mode === "geo") {
+      const rocks = Object.values((state.save && state.save.geoRockZones) || {}).reduce((a, n) => a + n, 0);
+      $("#mapSummary").textContent = `${rocks} rochers à Geo à casser · ${active.length} zones intéressantes`;
+    } else {
+      $("#mapSummary").textContent = `${active.filter((z) => z.ratio >= 1).length} / ${active.length} zones complètes · ${totalDone} / ${total} ${unit}`;
+    }
 
     const z = byId[state.mapZone];
     const missing = z.list.filter((e) => !e.done);
@@ -754,14 +824,14 @@
         <span class="zi-dot"></span>
         <div><b>${esc(e.name)}</b><small>${esc(e.sub)}</small></div>
       </li>`;
-    const noData = mode !== "items" && !(state.save && state.save.journal);
+    const noData = mode !== "items" && mode !== "geo" && !(state.save && state.save.journal);
     $("#zoneDetail").innerHTML = `
       <div class="zd-head" style="--zc:${zoneColor(z.ratio)}">
         <h3>${esc(z.name)}</h3>
-        <strong>${z.done}/${z.total}</strong>
+        <strong>${mode === "geo" ? "◆ " + z.count : `${z.done}/${z.total}`}</strong>
       </div>
       <div class="bar"><i style="width:${z.ratio * 100}%;background:${zoneColor(z.ratio)}"></i></div>
-      ${noData ? `<p class="muted">Chargez une sauvegarde pour ce mode.</p>` : !z.total ? `<p class="muted">Rien à faire dans cette zone pour ce mode.</p>` : missing.length ? `<h4>${mode === "journal" ? "À chasser" : mode === "essence" ? "À récolter" : "À trouver"} (${missing.length})</h4><ul class="zone-items">${missing.map((e) => row(e, false)).join("")}</ul>` : `<p class="zd-done">Zone terminée ✦</p>`}
+      ${noData ? `<p class="muted">Chargez une sauvegarde pour ce mode.</p>` : !z.total ? `<p class="muted">Rien à faire dans cette zone pour ce mode.</p>` : missing.length ? `<h4>${mode === "journal" ? "À chasser" : mode === "essence" ? "À récolter" : mode === "geo" ? "Pour gagner du Geo" : "À trouver"} (${missing.length})</h4><ul class="zone-items">${missing.map((e) => row(e, false)).join("")}</ul>` : `<p class="zd-done">Zone terminée ✦</p>`}
       ${got.length ? `<h4>Obtenu (${got.length})</h4><ul class="zone-items">${got.map((e) => row(e, true)).join("")}</ul>` : ""}`;
   }
 

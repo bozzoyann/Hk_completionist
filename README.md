@@ -18,7 +18,7 @@ Tracker de complétion **112 %** pour *Hollow Knight*, inspiré de silksong-comp
 - Recherche, filtres (tout / manquants / obtenus), indices masquables, sections repliables.
 - Noms officiels de la version française du jeu, avec le nom anglais en dessous (masquable).
 - **Les 112 cases** : une grille où chaque case vaut 1 %, colorée par catégorie (thème propre à chaque DLC).
-- **Carte d'Hallownest** : plan schématique des zones, colorées selon la progression, avec trois modes : objets, Journal du chasseur (créatures à chasser par zone) et Essence (racines de rêve, rêves de guerriers, boss des rêves, paliers de la Voyante).
+- **Carte d'Hallownest** : plan schématique des zones, colorées selon la progression, avec quatre modes : objets, Journal du chasseur (créatures à chasser par zone), Essence (racines de rêve, rêves de guerriers, boss des rêves, paliers de la Voyante) et Geo (rochers à Geo à casser, spots de farm, où vendre et rejouer).
 - **Arbre de progression** : les grandes étapes de la partie reliées par leurs prérequis, avec les prochains objectifs accessibles.
 - **Statistiques** : masques, réceptacles, emplacements de charme, position et Geo de l'ombre, Journal du chasseur, salles visitées, reliques, charmes équipés… (le jeu n'enregistre pas le nombre de morts).
 - Objets et catégories rangés dans l'ordre de progression habituel.
