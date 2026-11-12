@@ -68,6 +68,10 @@
   </header>
 
   <main class="wrap">
+    <div class="share-banner" id="shareBanner" hidden>
+      <span>👁 Vous consultez la progression partagée par quelqu'un d'autre (lecture seule).</span>
+      <button class="btn" id="shareExit">Revenir à ma progression</button>
+    </div>
     <section class="loader" id="loader">
       <div class="drop" id="drop" tabindex="0" role="button" aria-label="Charger une sauvegarde">
         <input type="file" id="fileInput" accept=".dat,.json,.txt,*/*" hidden>
@@ -80,7 +84,9 @@
           <button id="watchBtn" class="btn" hidden title="Relit automatiquement la sauvegarde quand le jeu l'écrit">Suivre le fichier en direct</button>
           <button id="clearBtn" class="btn ghost">Réinitialiser</button>
         </div>
+        <label class="toggle notify-toggle" title="Pendant le suivi en direct : petit son, et notification si l'onglet est en arrière-plan"><input type="checkbox" id="notifyToggle"> Prévenir des nouveautés en direct</label>
         <p id="status" class="status" role="status"></p>
+        <p id="coherence" class="coherence" hidden></p>
         <details class="paths">
           <summary>Où trouver ma sauvegarde ?</summary>
           <p class="small muted">Les fichiers s'appellent <code>user1.dat</code> à <code>user4.dat</code> (un par emplacement de partie).</p>
@@ -111,6 +117,9 @@
       <button role="tab" data-tab="map">⌖ Carte d'Hallownest</button>
       <button role="tab" data-tab="tree">⟡ Arbre de progression</button>
       <button role="tab" data-tab="journal">☰ Journal du chasseur</button>
+      <button role="tab" data-tab="achievements">✦ Succès</button>
+      <button role="tab" data-tab="godhome">☀ Salle des Dieux</button>
+      <button role="tab" data-tab="builds">◈ Builds de charmes</button>
       <button role="tab" data-tab="stats">∑ Statistiques</button>
       <a class="tabs-link" href="lore.html">✧ Lore et rencontres ↗</a>
       <label class="toggle opt-toggle" title="Clés simples en trop, laissez-passer, racines de rêve, boss optionnels et fins : ce qui n'est pas nécessaire pour le 112 %"><input type="checkbox" id="optional" checked> Objets optionnels</label>
@@ -168,6 +177,21 @@
       <div id="journal-body"></div>
     </section>
 
+    <section class="panel" id="panel-achievements" hidden>
+      <div class="tree-head"><div><h2>Succès</h2><p class="small muted">Les succès du jeu, déduits de votre sauvegarde.</p></div></div>
+      <div id="achievements-body"></div>
+    </section>
+
+    <section class="panel" id="panel-godhome" hidden>
+      <div class="tree-head"><div><h2>Salle des Dieux</h2><p class="small muted">Les statues de la Maison des Dieux et le niveau atteint contre chaque boss.</p></div></div>
+      <div id="godhome-body"></div>
+    </section>
+
+    <section class="panel" id="panel-builds" hidden>
+      <div class="tree-head"><div><h2>Builds de charmes</h2><p class="small muted">Composez un build avec les Charmes que vous possédez, en tenant compte de vos emplacements.</p></div></div>
+      <div id="builds-body"></div>
+    </section>
+
     <section class="panel" id="panel-stats" hidden>
       <div id="stats-body"></div>
     </section>
@@ -182,6 +206,8 @@
   <script src="js/save.js"></script>
   <script src="js/data.js"></script>
   <script src="js/journal-data.js"></script>
+  <script src="js/achievements-data.js"></script>
+  <script src="js/features-data.js"></script>
   <script src="js/extras.js"></script>
   <script src="js/lore-data.js"></script>
   <script src="js/app.js"></script>

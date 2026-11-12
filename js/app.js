@@ -22,6 +22,8 @@
     spoilers: LS.get("hk.spoilers", true),
     english: LS.get("hk.english", true),
     tab: LS.get("hk.tab", "list"),
+    notify: LS.get("hk.notify", false),
+    shared: false,
     mapZone: LS.get("hk.mapZone", null),
     optional: LS.get("hk.optional", true),
     news: LS.get("hk.news", null), // { items: [ids], pctFrom, pctTo, timeDelta, at, fileName }
@@ -83,7 +85,43 @@
       stats.journalTotal = main.length;
       stats.hunterMark = pd.hasHuntersMark === true;
     }
-    return { done, counters, meta, stats, pctOverride, journal };
+    // Charms: owned, costs, equipped
+    const DEFAULT_COSTS = [0, 1, 1, 1, 2, 2, 2, 3, 2, 3, 1, 3, 1, 3, 1, 2, 2, 1, 2, 3, 2, 4, 2, 2, 2, 3, 1, 4, 2, 4, 1, 2, 3, 2, 4, 3, 5, 1, 3, 2, 2];
+    const charms = { owned: [], costs: {}, equipped: Array.isArray(pd.equippedCharms) ? pd.equippedCharms : [], slots: pd.charmSlots || 3,
+      royal: pd.royalCharmState || 0, grimmChild: pd.grimmChildLevel || 0 };
+    for (let n = 1; n <= 40; n++) {
+      const owned = n === 36 ? (pd.royalCharmState || 0) >= 3 : pd["gotCharm_" + n] === true;
+      if (owned) charms.owned.push(n);
+      charms.costs[n] = typeof pd["charmCost_" + n] === "number" ? pd["charmCost_" + n] : DEFAULT_COSTS[n];
+    }
+    // Hall of Gods statues: [unlocked, attuned, ascended, radiant]
+    const statues = {};
+    for (const st of (window.HKFeatures ? HKFeatures.STATUES : [])) {
+      const v = pd["statueState" + st.k] || {};
+      statues[st.k] = [v.isUnlocked ? 1 : 0, v.completedTier1 ? 1 : 0, v.completedTier2 ? 1 : 0, v.completedTier3 ? 1 : 0];
+    }
+    // Geo budget inputs
+    const shopFlags = {};
+    for (const f of (window.HKFeatures ? HKFeatures.SHOP_FLAGS : [])) shopFlags[f] = pd[f] === true;
+    const relics = [1, 2, 3, 4].map((i) => pd["trinket" + i] || 0);
+    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics,
+      bank: pd.bankerAccountPurchased ? pd.bankerBalance || 0 : 0 };
+    // Achievements
+    if (window.HKFeatures) {
+      const total = totalPercent(result);
+      const main = (window.HKJournal || []).filter((e) => !e.opt);
+      const ctx = { total, journalFound: main.filter((e) => journal[e.k][0]).length, journalTotal: main.length,
+        stations: ["openedTownBuilding", "openedCrossroads", "openedGreenpath", "openedFungalWastes", "openedRuins1", "openedRestingGrounds",
+          "openedRuins2", "openedRoyalGardens", "openedDeepnest", "openedHiddenStation", "openedStagNest"].filter((k) => pd[k] === true).length };
+      result.achievements = {};
+      for (const [k, rule] of Object.entries(HKFeatures.ACH_RULES)) {
+        let v = null;
+        try { v = rule(pd, ctx); } catch { v = null; }
+        result.achievements[k] = v === null ? null : !!v;
+      }
+      result.meta.trackerPct = total;
+    }
+    return result;
   }
 
   async function loadBuffer(buffer, label) {
@@ -116,6 +154,7 @@
       LS.set("hk.save", result);
       setStatus(`✔ ${label} chargé (version ${result.meta.version}) à ${new Date().toLocaleTimeString("fr-FR")}` +
         (newIds.length ? ` · ${newIds.length} nouveauté(s) !` : prev ? " · rien de nouveau depuis la dernière fois" : ""), "ok");
+      if (watchTimer && newIds.length) notifyNew(newIds);
       render();
     } catch (err) {
       console.error(err);
@@ -320,6 +359,11 @@
     if (state.tab === "stats") renderStats();
     if (state.tab === "map") renderMap();
     if (state.tab === "journal") renderJournal();
+    if (state.tab === "achievements") renderAchievements();
+    if (state.tab === "godhome") renderGodhome();
+    if (state.tab === "builds") renderBuilds();
+    renderCoherence();
+    renderShareBanner();
   }
 
   /* ------------------------------ 112 cells grid ----------------------------- */
@@ -642,6 +686,208 @@
     });
   }
 
+
+  /* ------------------------------ Coherence check ------------------------------ */
+
+  function renderCoherence() {
+    const el = $("#coherence");
+    const m = state.save && state.save.meta;
+    if (!m || m.gamePct === null || m.gamePct === undefined || state.shared) { el.hidden = true; return; }
+    const total = SECTIONS.filter((s) => !s.extra).reduce((a, s) => a + sectionPct(s, sectionDone(s)), 0);
+    if (Math.round(m.gamePct) === total) {
+      el.hidden = false;
+      el.className = "coherence ok";
+      el.innerHTML = `✔ Le site et le jeu sont d'accord : <b>${total} %</b>.`;
+    } else {
+      el.hidden = false;
+      el.className = "coherence warn";
+      el.innerHTML = `⚠ Le jeu indique <b>${m.gamePct} %</b>, le site calcule <b>${total} %</b>.
+        <span>Le jeu ne recalcule son pourcentage qu'à certains moments (par exemple en ouvrant l'inventaire) : rouvrez l'inventaire en jeu, sauvegardez sur un banc et rechargez le fichier. Si l'écart persiste, c'est une erreur du site : n'hésitez pas à la signaler.</span>`;
+    }
+  }
+
+  /* ---------------------------------- Achievements ---------------------------------- */
+
+  function renderAchievements() {
+    const el = $("#achievements-body");
+    const a = state.save && state.save.achievements;
+    if (!a) { el.innerHTML = `<p class="muted">Chargez une sauvegarde pour voir vos succès.</p>`; return; }
+    const list = window.HKAchievements || [];
+    const got = list.filter((x) => a[x.k] === true).length;
+    const unknown = list.filter((x) => a[x.k] === null).length;
+    const f = state.achFilter || "all";
+    const cls = (v) => (v === true ? "got" : v === null ? "unknown" : "locked");
+    el.innerHTML = `
+      <div class="journal-head">
+        <div class="jh-stat ok"><strong>${got}<small>/${list.length}</small></strong><span>succès obtenus d'après la sauvegarde</span></div>
+        <div class="jh-stat"><strong>${list.length - got - unknown}</strong><span>restants</span></div>
+        <div class="jh-stat"><strong>${unknown}</strong><span>impossibles à vérifier depuis la save</span></div>
+      </div>
+      <div class="toolbar journal-tools">
+        <div class="seg" id="achSeg">${[["all", "Tous"], ["locked", "Restants"], ["got", "Obtenus"], ["unknown", "Incertains"]].map(([k, l]) => `<button data-af="${k}" class="${f === k ? "on" : ""}">${l}</button>`).join("")}</div>
+      </div>
+      <ul class="ach-grid">${list.filter((x) => f === "all" || cls(a[x.k]) === f).map((x) => `
+        <li class="ach ${cls(a[x.k])}">
+          <span class="ach-icon">${a[x.k] === true ? "✦" : a[x.k] === null ? "?" : "◇"}</span>
+          <div><b>${esc(x.fr)}</b>${state.english && x.en !== x.fr ? ` <small class="en">${esc(x.en)}</small>` : ""}<p>${esc(x.frd)}</p>
+          ${a[x.k] === null ? `<em>La sauvegarde ne permet pas de le vérifier.</em>` : ""}</div>
+        </li>`).join("")}</ul>
+      <p class="small muted">Les succès Steam, Xbox ou PlayStation sont liés à votre compte, pas à la sauvegarde : cette liste indique ce que la sauvegarde permet de déduire.</p>`;
+    $("#achSeg").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-af]");
+      if (!b) return;
+      state.achFilter = b.dataset.af;
+      renderAchievements();
+    });
+  }
+
+  /* ---------------------------------- Godhome ---------------------------------- */
+
+  function renderGodhome() {
+    const el = $("#godhome-body");
+    const st = state.save && state.save.statues;
+    if (!st) { el.innerHTML = `<p class="muted">Chargez une sauvegarde pour voir la Salle des Dieux.</p>`; return; }
+    const list = HKFeatures.STATUES;
+    const count = (i) => list.filter((x) => st[x.k] && st[x.k][i]).length;
+    const tiers = [["Attuned", "difficulté 1"], ["Ascended", "difficulté 2"], ["Radiant", "difficulté 3"]];
+    el.innerHTML = `
+      <div class="journal-head">
+        <div class="jh-stat"><strong>${count(0)}<small>/${list.length}</small></strong><span>statues débloquées</span></div>
+        ${tiers.map(([n, d], i) => `<div class="jh-stat tier${i + 1}"><strong>${count(i + 1)}<small>/${list.length}</small></strong><span>${n} (${d})</span></div>`).join("")}
+      </div>
+      <div class="godhome-grid">${list.map((x) => {
+        const v = st[x.k] || [0, 0, 0, 0];
+        const level = v[3] ? 3 : v[2] ? 2 : v[1] ? 1 : 0;
+        return `<div class="statue lvl${level}${v[0] ? "" : " sealed"}">
+          <div class="statue-plinth"><span class="statue-gem"></span></div>
+          <b>${v[0] ? esc(x.fr) : "???"}</b>${v[0] && state.english && x.en !== x.fr ? `<small>${esc(x.en)}</small>` : ""}
+          <div class="tiers">${[1, 2, 3].map((t) => `<i class="${v[t] ? "on" : ""}" title="${tiers[t - 1][0]}"></i>`).join("")}</div>
+        </div>`;
+      }).join("")}</div>
+      <p class="small muted">Chaque statue de la Salle des Dieux peut être vaincue à trois niveaux : Attuned, Ascended et Radiant (noms anglais du jeu). Les Panthéons sont suivis dans la checklist.</p>`;
+  }
+
+  /* -------------------------------- Charm builds -------------------------------- */
+
+  function charmLabel(n, c) {
+    if (n === 36) return c.royal >= 4 ? "Coeur du vide" : "Âme-royale";
+    if (n === 40) return c.grimmChild >= 5 ? "Mélodie Insouciante" : "L'Héritier de Grimm";
+    const it = findItem("gotCharm_" + n);
+    return it ? it.name.replace(/^#\d+ /, "") : "Charme #" + n;
+  }
+
+  function renderBuilds() {
+    const el = $("#builds-body");
+    const c = state.save && state.save.charms;
+    if (!c) { el.innerHTML = `<p class="muted">Chargez une sauvegarde pour composer un build avec vos Charmes.</p>`; return; }
+    if (!state.build) state.build = LS.get("hk.build", null) || [...c.equipped];
+    state.build = state.build.filter((n) => c.owned.includes(n));
+    const used = state.build.reduce((a, n) => a + (c.costs[n] || 0), 0);
+    const over = used > c.slots;
+    const builds = LS.get("hk.builds", []);
+    const pips = (n) => Array.from({ length: n }, () => "<i></i>").join("");
+    el.innerHTML = `
+      <div class="build-bar ${over ? "over" : ""}">
+        <div>
+          <small>Emplacements utilisés</small>
+          <div class="notches">${Array.from({ length: Math.max(c.slots, used) }, (_, i) => `<i class="${i < used ? (i >= c.slots ? "over" : "on") : ""}"></i>`).join("")}</div>
+          <strong>${used} / ${c.slots}</strong> ${over ? `<span class="over-tag">Surcharge : les dégâts reçus sont doublés</span>` : ""}
+        </div>
+        <div class="build-actions">
+          <button class="btn ghost" id="buildCurrent">Build équipé en jeu</button>
+          <button class="btn ghost" id="buildClear">Vider</button>
+          <button class="btn" id="buildSave">Enregistrer ce build</button>
+        </div>
+      </div>
+      <div class="build-current">${state.build.length ? state.build.map((n) => `<button class="chip" data-charm="${n}">${esc(charmLabel(n, c))} <span class="cost">${pips(c.costs[n])}</span> ✕</button>`).join("") : `<span class="muted">Cliquez sur des Charmes ci-dessous pour composer un build.</span>`}</div>
+      ${builds.length ? `<h3 class="journal-sub">Mes builds</h3><div class="saved-builds">${builds.map((b, i) => `<div class="saved"><button class="link" data-load="${i}">${esc(b.name)}</button><small>${b.charms.map((n) => esc(charmLabel(n, c))).join(", ")}</small><button class="x" data-del="${i}" aria-label="Supprimer">✕</button></div>`).join("")}</div>` : ""}
+      <h3 class="journal-sub">Vos Charmes (${c.owned.length}/40)</h3>
+      <div class="charm-grid">${c.owned.map((n) => `<button class="charm${state.build.includes(n) ? " in" : ""}" data-charm="${n}">
+        <b>${esc(charmLabel(n, c))}</b><span class="cost">${pips(c.costs[n])}</span></button>`).join("")}</div>`;
+  }
+
+  /* -------------------------------- Geo budget -------------------------------- */
+
+  function geoBudget() {
+    const sv = state.save;
+    const isDoneShop = (it) => (it.flag ? !!(sv.shopFlags && sv.shopFlags[it.flag]) : isDone(it.id));
+    const groups = HKFeatures.SHOP.map((g) => ({ shop: g.shop, items: g.items.filter((it) => !isDoneShop(it)) })).filter((g) => g.items.length);
+    const need = groups.reduce((a, g) => a + g.items.reduce((b, it) => b + it.geo, 0), 0);
+    const relicGeo = (sv.relics || [0, 0, 0, 0]).reduce((a, n, i) => a + n * HKFeatures.RELIC_VALUES[i], 0);
+    const have = (sv.stats ? sv.stats.geo : 0) + (sv.bank || 0);
+    return { groups, need, relicGeo, have };
+  }
+
+  /* -------------------------------- Notifications -------------------------------- */
+
+  function chime() {
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      [660, 990].forEach((f, i) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = "sine"; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, ac.currentTime + i * 0.12);
+        g.gain.exponentialRampToValueAtTime(0.12, ac.currentTime + i * 0.12 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + i * 0.12 + 0.5);
+        o.connect(g).connect(ac.destination);
+        o.start(ac.currentTime + i * 0.12); o.stop(ac.currentTime + i * 0.12 + 0.55);
+      });
+    } catch { /* audio unavailable */ }
+  }
+
+  function notifyNew(ids) {
+    if (!state.notify) return;
+    chime();
+    const names = ids.map((id) => { const f = findSection(id); return f ? f.item.name.replace(/^#\d+ /, "") : id; });
+    try {
+      if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+        new Notification(`${ids.length} nouveauté${ids.length > 1 ? "s" : ""} !`, { body: names.slice(0, 5).join(", "), icon: "img/icon-192.png" });
+      }
+    } catch { /* notifications unavailable */ }
+  }
+
+  /* -------------------------------- Share link -------------------------------- */
+
+  function allItemIds() {
+    const ids = [];
+    for (const s of SECTIONS) for (const it of s.items || []) ids.push(it.id);
+    return ids;
+  }
+
+  function shareLink() {
+    const ids = allItemIds();
+    const done = new Set(state.save ? state.save.done : [...state.manual]);
+    const bytes = new Uint8Array(Math.ceil(ids.length / 8));
+    ids.forEach((id, i) => { if (done.has(id)) bytes[i >> 3] |= 1 << (i & 7); });
+    let bin = "";
+    bytes.forEach((b) => { bin += String.fromCharCode(b); });
+    const bits = btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    const m = state.save && state.save.meta;
+    const o = (state.save && state.save.pctOverride) || {};
+    const extra = [m ? Math.round(m.playTime || 0) : 0, m && m.steelSoul ? 1 : 0, o.masks ?? "x", o.vessels ?? "x"].join(".");
+    return location.origin + location.pathname + "#p=1." + extra + "." + bits;
+  }
+
+  function readShareLink() {
+    const mt = /#p=1\.(\d+)\.(\d)\.(\d|x)\.(\d|x)\.([A-Za-z0-9_-]+)/.exec(location.hash);
+    if (!mt) return null;
+    try {
+      const bin = atob(mt[5].replace(/-/g, "+").replace(/_/g, "/"));
+      const ids = allItemIds();
+      const done = ids.filter((id, i) => (bin.charCodeAt(i >> 3) >> (i & 7)) & 1);
+      const pctOverride = {};
+      if (mt[3] !== "x") pctOverride.masks = +mt[3];
+      if (mt[4] !== "x") pctOverride.vessels = +mt[4];
+      return { done, pctOverride, meta: { playTime: +mt[1], steelSoul: mt[2] === "1", gamePct: null, version: "", geo: 0 } };
+    } catch { return null; }
+  }
+
+  function renderShareBanner() {
+    const el = $("#shareBanner");
+    if (!state.shared) { el.hidden = true; return; }
+    el.hidden = false;
+  }
+
   /* -------------------------------- Statistics ------------------------------- */
 
   function renderStats() {
@@ -658,7 +904,7 @@
       `<div class="stat" style="--c:${color || "var(--accent)"}"><span class="stat-icon">${icon}</span><div><small>${label}</small><strong>${value}</strong>${sub ? `<em>${sub}</em>` : ""}</div></div>`;
 
     el.innerHTML = `
-      <div class="recap-row"><button class="btn" id="recapBtn">⇩ Image récapitulative à partager</button></div>
+      <div class="recap-row"><button class="btn ghost" id="linkBtn">🔗 Copier un lien de partage</button><button class="btn" id="recapBtn">⇩ Image récapitulative à partager</button></div>
       <div class="stat-hero">
         <div class="vitals">
           <div><small>Masques</small><div class="pips">${pips(st.maxHealth, 9, "mask")}</div></div>
@@ -689,6 +935,19 @@
         ${card("❖", "Protecteur Blanc", st.whiteDefender + " / 5", "victoires", "#f4efe6")}
         ${card("❀", "Fleur délicate", st.flowerBroken ? st.flowerBroken + " fois brisée" : "Jamais brisée", "", "#ffb3c7")}
       </div>
+      ${(() => {
+        const b = geoBudget();
+        const missing = Math.max(0, b.need - b.have);
+        return `<div class="budget">
+          <div class="budget-head">
+            <div><small>Budget en Geo pour le 112 %</small><strong>${fmt(b.need)} Geo</strong><em>restent à dépenser en achats nécessaires</em></div>
+            <div><small>Disponible</small><strong>${fmt(b.have)} Geo</strong><em>en poche${state.save.bank ? " et à la banque" : ""}</em></div>
+            <div><small>Reliques à vendre</small><strong>${fmt(b.relicGeo)} Geo</strong><em>chez Lemm</em></div>
+            <div class="${missing ? "warn" : "ok"}"><small>${missing ? "Il manque" : "Verdict"}</small><strong>${missing ? fmt(Math.max(0, missing - b.relicGeo)) + " Geo" : "Ça suffit ✦"}</strong><em>${missing ? (missing <= b.relicGeo ? "en vendant vos reliques, c'est bon" : "après la vente des reliques") : "pas besoin de farmer"}</em></div>
+          </div>
+          ${b.groups.length ? `<details><summary>Détail des achats restants</summary><ul class="budget-list">${b.groups.map((g) => `<li><b>${esc(g.shop)}</b><span>${g.items.map((it) => `${esc(it.label)} <i>${fmt(it.geo)}</i>`).join(" · ")}</span></li>`).join("")}</ul></details>` : ""}
+        </div>`;
+      })()}
       <div class="equipped">
         <small>Charmes équipés</small>
         <div>${st.equipped.length ? st.equipped.map((c) => `<span>${esc(c)}</span>`).join("") : `<span class="muted">Aucun</span>`}</div>
@@ -988,8 +1247,54 @@
     render();
   });
 
-  $("#panel-stats").addEventListener("click", (e) => {
+  $("#panel-stats").addEventListener("click", async (e) => {
     if (e.target.closest("#recapBtn")) shareRecap();
+    if (e.target.closest("#linkBtn")) {
+      const url = shareLink();
+      try { await navigator.clipboard.writeText(url); setStatus("🔗 Lien de partage copié dans le presse-papiers.", "ok"); }
+      catch { prompt("Copiez ce lien :", url); }
+    }
+  });
+
+  $("#panel-builds").addEventListener("click", (e) => {
+    const c = state.save && state.save.charms;
+    if (!c) return;
+    const ch = e.target.closest("[data-charm]");
+    if (ch) {
+      const n = +ch.dataset.charm;
+      state.build = state.build.includes(n) ? state.build.filter((x) => x !== n) : [...state.build, n];
+      LS.set("hk.build", state.build);
+      return renderBuilds();
+    }
+    if (e.target.closest("#buildCurrent")) { state.build = [...c.equipped]; LS.set("hk.build", state.build); return renderBuilds(); }
+    if (e.target.closest("#buildClear")) { state.build = []; LS.set("hk.build", state.build); return renderBuilds(); }
+    if (e.target.closest("#buildSave")) {
+      if (!state.build.length) return;
+      const name = prompt("Nom du build :", "Build " + (LS.get("hk.builds", []).length + 1));
+      if (!name) return;
+      const builds = LS.get("hk.builds", []);
+      builds.push({ name: name.slice(0, 40), charms: state.build });
+      LS.set("hk.builds", builds);
+      return renderBuilds();
+    }
+    const ld = e.target.closest("[data-load]");
+    if (ld) { state.build = [...LS.get("hk.builds", [])[+ld.dataset.load].charms]; LS.set("hk.build", state.build); return renderBuilds(); }
+    const del = e.target.closest("[data-del]");
+    if (del) { const b = LS.get("hk.builds", []); b.splice(+del.dataset.del, 1); LS.set("hk.builds", b); return renderBuilds(); }
+  });
+
+  $("#notifyToggle").addEventListener("change", async (e) => {
+    state.notify = e.target.checked;
+    LS.set("hk.notify", state.notify);
+    if (state.notify && "Notification" in window && Notification.permission === "default") {
+      try { await Notification.requestPermission(); } catch { /* ignore */ }
+    }
+    if (state.notify) chime();
+  });
+
+  $("#shareExit").addEventListener("click", () => {
+    history.replaceState(null, "", location.pathname);
+    location.reload();
   });
 
   // Offline support
@@ -1041,7 +1346,15 @@
     });
   });
 
-  if (state.save) {
+  const shared = readShareLink();
+  if (shared) {
+    state.shared = true;
+    state.save = { done: shared.done, counters: {}, meta: shared.meta, stats: null, pctOverride: shared.pctOverride, journal: null };
+    state.news = null;
+  }
+  $("#notifyToggle").checked = state.notify;
+
+  if (state.save && !state.shared) {
     setStatus(`Dernière sauvegarde chargée le ${new Date(state.save.meta.loadedAt).toLocaleString("fr-FR")}. Rechargez-la pour mettre à jour.`, "");
   }
   render();
