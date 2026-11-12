@@ -729,3 +729,5 @@ body .recap-row { gap: 8px; flex-wrap: wrap; }
 .seer-track li.got b { color: #d7a4ff; }
 .seer-track li.ready { border-color: #f3c65a; box-shadow: 0 0 12px -4px #f3c65a; }
 .seer-track li.ready b { color: #f3c65a; }
+.ess-tips { margin: 10px 0 4px; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.ess-tips b { color: var(--text); font-weight: 600; }

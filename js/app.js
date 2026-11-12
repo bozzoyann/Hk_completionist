@@ -113,7 +113,7 @@
     const shopFlags = {};
     for (const f of (window.HKFeatures ? HKFeatures.SHOP_FLAGS : [])) shopFlags[f] = pd[f] === true;
     const relics = [1, 2, 3, 4].map((i) => pd["trinket" + i] || 0);
-    const seer = { d1: pd.dreamReward1 === true, d3: pd.dreamReward3 === true, c30: pd.gotCharm_30 === true, d5: pd.dreamReward5 === true,
+    const seer = { d1: pd.dreamReward1 === true, d2: pd.dreamReward2 === true, d3: pd.dreamReward3 === true, c30: pd.gotCharm_30 === true, d5: pd.dreamReward5 === true,
       gate: pd.hasDreamGate === true, d6: pd.dreamReward6 === true, d7: pd.dreamReward7 === true, awoken: pd.dreamNailUpgraded === true, moth: pd.mothDeparted === true };
     const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics, seer,
       bank: pd.bankerAccountPurchased ? pd.bankerBalance || 0 : 0 };
@@ -553,6 +553,13 @@
     godhome: "godhome", storms: "godhome", greyprince: "dirtmouth",
   };
   const ESSENCE_SOURCES = ["roots", "warriors"];
+  // Essence given by each Warrior Dream and dream boss (first victory)
+  const ESSENCE_AMOUNTS = {
+    killedGhostAladar: 100, aladarSlugDefeated: 100, xeroDefeated: 100, elderHuDefeated: 100, mumCaterpillarDefeated: 150,
+    noEyesDefeated: 200, galienDefeated: 200, markothDefeated: 250,
+    falseKnightDreamDefeated: 300, mageLordDreamDefeated: 300, infectedKnightDreamDefeated: 400, whiteDefenderDefeated: 300, greyPrinceDefeated: 300,
+  };
+  const essenceOf = (it) => it.essence || ESSENCE_AMOUNTS[it.id] || 0;
   const DREAM_BOSSES = ["falseKnightDreamDefeated", "mageLordDreamDefeated", "infectedKnightDreamDefeated", "whiteDefenderDefeated", "greyPrinceDefeated"];
 
   // Uniform entries { name, sub, color, done, amount } for a zone in the current map mode
@@ -583,13 +590,14 @@
         for (const it of s.items || []) {
           const isSource = ESSENCE_SOURCES.includes(s.id) || DREAM_BOSSES.includes(it.id);
           if (!isSource || ITEM_ZONE[it.id] !== zoneId) continue;
+          const amount = essenceOf(it);
           out.push({
             key: it.id,
             name: strip(it.name),
-            sub: it.essence ? `${it.essence} Essences` : s.id === "warriors" ? "Rêve de guerrier : beaucoup d'Essence" : "Boss des rêves : beaucoup d'Essence",
+            sub: (s.id === "roots" ? "Racine de rêve" : s.id === "warriors" ? "Rêve de guerrier" : "Boss des rêves") + ` · ${amount} Essences`,
             color: s.color,
             done: isDone(it.id),
-            amount: it.essence || 0,
+            amount,
           });
         }
       }
@@ -606,7 +614,7 @@
 
   // Seer milestones (Essence) and what they give
   const SEER = [
-    [100, "Sceau d'Hallownest", (pd) => pd.d1], [300, "Minerai pâle", (pd) => pd.d3], [500, "Porteur de rêves", (pd) => pd.c30],
+    [100, "Sceau d'Hallownest", (pd) => pd.d1], [200, "Clairière des Esprits", (pd) => pd.d2], [300, "Minerai pâle", (pd) => pd.d3], [500, "Porteur de rêves", (pd) => pd.c30],
     [700, "Fragment de réceptacle", (pd) => pd.d5], [900, "Portail des Rêves", (pd) => pd.gate], [1200, "Oeuf arcanique", (pd) => pd.d6],
     [1500, "Éclat de masque", (pd) => pd.d7], [1800, "Aiguillon éveillé des rêves", (pd) => pd.awoken], [2400, "Derniers mots de la Voyante", (pd) => pd.moth],
   ];
@@ -622,24 +630,37 @@
     }
     const ess = sv.stats ? sv.stats.essence : 0;
     const next = SEER.find(([n, , f]) => !f(sv.seer));
-    const rootsLeft = SECTIONS.find((s) => s.id === "roots").items.filter((it) => !isDone(it.id));
-    const rootEss = rootsLeft.reduce((a, it) => a + (it.essence || 0), 0);
-    const warriorsLeft = SECTIONS.find((s) => s.id === "warriors").items.filter((it) => !isDone(it.id)).length;
-    const bossesLeft = DREAM_BOSSES.filter((id) => !isDone(id)).length;
+    const sumLeft = (list) => list.filter((it) => !isDone(it.id)).reduce((a, it) => a + essenceOf(it), 0);
+    const rootItems = SECTIONS.find((s) => s.id === "roots").items;
+    const warriorItems = SECTIONS.find((s) => s.id === "warriors").items;
+    const bossItems = DREAM_BOSSES.map(findItem).filter(Boolean);
+    const rootsLeft = rootItems.filter((it) => !isDone(it.id));
+    const rootEss = sumLeft(rootItems), warEss = sumLeft(warriorItems), bossEss = sumLeft(bossItems);
+    const warriorsLeft = warriorItems.filter((it) => !isDone(it.id)).length;
+    const bossesLeft = bossItems.filter((it) => !isDone(it.id)).length;
+    const reachable = ess + rootEss + warEss + bossEss;
     const fmt = (n) => Number(n).toLocaleString("fr-FR");
     box.innerHTML = `
       <div class="ess-top">
         <div><small>Essence</small><strong>${fmt(ess)}</strong><em>${next ? (ess >= next[0] ? `palier ${fmt(next[0])} atteint : allez voir la Voyante !` : `encore ${fmt(next[0] - ess)} pour ${next[1]}`) : "toutes les récompenses obtenues ✦"}</em></div>
         <div><small>Racines de rêve restantes</small><strong>${rootsLeft.length}</strong><em>${fmt(rootEss)} Essences à récolter</em></div>
-        <div><small>Rêves de guerriers restants</small><strong>${warriorsLeft}</strong><em>chacun donne beaucoup d'Essence</em></div>
-        <div><small>Boss des rêves restants</small><strong>${bossesLeft}</strong><em>optionnels, très rentables</em></div>
+        <div><small>Rêves de guerriers restants</small><strong>${warriorsLeft}</strong><em>${fmt(warEss)} Essences à récolter</em></div>
+        <div><small>Boss des rêves restants</small><strong>${bossesLeft}</strong><em>${fmt(bossEss)} Essences à récolter</em></div>
+        <div><small>Essence atteignable</small><strong>${fmt(reachable)}</strong><em>${reachable >= 2400 ? "assez pour les 2 400 de la Voyante" : `il faudra ${fmt(2400 - reachable)} Essences d'ennemis`}</em></div>
       </div>
       <ol class="seer-track">${SEER.map(([n, label, f]) => {
         const got = f(sv.seer);
         const ready = !got && ess >= n;
         return `<li class="${got ? "got" : ready ? "ready" : ""}"><b>${fmt(n)}</b><span>${esc(label)}</span></li>`;
       }).join("")}</ol>
-      <p class="small muted">Astuces : récoltez chaque racine de rêve en entier (frappez les orbes avec l'Aiguillon des rêves), affrontez les rêves de guerriers et les boss des rêves, et équipez le Charme Porteur de rêves, qui fait tomber plus souvent de l'Essence des ennemis vaincus.</p>`;
+      <ul class="ess-tips">
+        <li><b>Racines de rêve</b> : frappez chaque orbe avec l'Aiguillon des rêves pour tout récolter (482 Essences au total).</li>
+        <li><b>Rêves de guerriers</b> : 1 100 Essences au total, de 100 (Gorb, Xero, Hu l'Ancien) à 250 (Markoth).</li>
+        <li><b>Boss des rêves</b> : 300 à 400 Essences à la première victoire (Proche Disparu : 400).</li>
+        <li><b>Ennemis</b> : 0,5 % de chance de lâcher 1 Essence (Aiguillon des rêves obtenu). 1 % avec Porteur de rêves, 2 % après avoir utilisé le Portail des Rêves (jusqu'à la prochaine Essence ramassée), 4 % avec les deux.</li>
+        <li><b>Astuce</b> : à partir de 900 Essences, placez un Portail des Rêves près d'une zone pleine d'ennemis faibles, équipez Porteur de rêves et revenez-y après chaque Essence.</li>
+      </ul>
+      <p class="small muted">Valeurs tirées des guides et wikis de la communauté ; elles peuvent varier légèrement selon les sources.</p>`;
   }
 
   function zoneColor(ratio) {

@@ -522,6 +522,18 @@
     "Derniers mots de la Voyante": "The Seer's last words",
     "Astuces : récoltez chaque racine de rêve en entier (frappez les orbes avec l'Aiguillon des rêves), affrontez les rêves de guerriers et les boss des rêves, et équipez le Charme Porteur de rêves, qui fait tomber plus souvent de l'Essence des ennemis vaincus.":
       "Tips: harvest every Whispering Root fully (hit the orbs with the Dream Nail), fight the Warrior Dreams and dream bosses, and equip Dream Wielder, which makes defeated enemies drop Essence more often.",
+    "Clairière des Esprits": "Spirits' Glade", "Essence atteignable": "Reachable Essence",
+    "assez pour les 2 400 de la Voyante": "enough for the Seer's 2,400",
+    "Racine de rêve": "Whispering Root", "Rêve de guerrier": "Warrior Dream", "Boss des rêves": "Dream boss",
+    "Racines de rêve": "Whispering Roots", "Rêves de guerriers": "Warrior Dreams", "Ennemis": "Enemies", "Astuce": "Tip",
+    ": frappez chaque orbe avec l'Aiguillon des rêves pour tout récolter (482 Essences au total).": ": hit every orb with the Dream Nail to harvest it all (482 Essence in total).",
+    ": 1 100 Essences au total, de 100 (Gorb, Xero, Hu l'Ancien) à 250 (Markoth).": ": 1,100 Essence in total, from 100 (Gorb, Xero, Elder Hu) to 250 (Markoth).",
+    ": 300 à 400 Essences à la première victoire (Proche Disparu : 400).": ": 300 to 400 Essence on the first victory (Lost Kin: 400).",
+    ": 0,5 % de chance de lâcher 1 Essence (Aiguillon des rêves obtenu). 1 % avec Porteur de rêves, 2 % après avoir utilisé le Portail des Rêves (jusqu'à la prochaine Essence ramassée), 4 % avec les deux.":
+      ": 0.5% chance to drop 1 Essence (once you have the Dream Nail). 1% with Dream Wielder, 2% after using the Dreamgate (until the next Essence picked up), 4% with both.",
+    ": à partir de 900 Essences, placez un Portail des Rêves près d'une zone pleine d'ennemis faibles, équipez Porteur de rêves et revenez-y après chaque Essence.":
+      ": from 900 Essence, set a Dreamgate near an area full of weak enemies, equip Dream Wielder and warp back after each Essence.",
+    "Valeurs tirées des guides et wikis de la communauté ; elles peuvent varier légèrement selon les sources.": "Values from community guides and wikis; they may vary slightly between sources.",
     "Langue": "Language", "de jeu": "played", "Âme d'acier": "Steel Soul", "mode classique": "classic mode", "Progression manuelle": "Manual progress",
     "Charmes": "Charms", "Larves": "Grubs", "Journal": "Journal", "Ma progression Hollow Knight": "My Hollow Knight progress",
   };
@@ -543,6 +555,8 @@
     [/^encore ([\d\s ]+) pour (.+)$/, (m, n, what) => `${n} more for ${UI[what] || what}`],
     [/^palier ([\d\s ]+) atteint : allez voir la Voyante !$/, "$1 reached: go see the Seer!"],
     [/^([\d\s ]+) Essences à récolter$/, "$1 Essence to harvest"],
+    [/^il faudra ([\d\s ]+) Essences d'ennemis$/, "$1 more needed from enemies"],
+    [/^(Racine de rêve|Rêve de guerrier|Boss des rêves) · (\d+) Essences$/, (m, k, n) => `${({ "Racine de rêve": "Whispering Root", "Rêve de guerrier": "Warrior Dream", "Boss des rêves": "Dream boss" })[k]} · ${n} Essence`],
     [/^(\d+) à compléter$/, "$1 to complete"],
     [/^Vos Charmes \((\d+)\/40\)$/, "Your charms ($1/40)"],
     [/^(\d+) vendue\(s\) à Lemm$/, "$1 sold to Lemm"], [/^(\d+) vendu\(s\) à Jinn$/, "$1 sold to Jinn"],
