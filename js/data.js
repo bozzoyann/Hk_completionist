@@ -41,8 +41,8 @@
       return Math.max(1, Math.min(3, (pd.grubsCollected || 0) - others)) >= k;
     },
   });
-  const root = (n, sceneName, zone, hint) => ({
-    id: "root_" + sceneName, name: "Racine de rêve #" + n, en: "Whispering Root", hint, zone, wiki: "Whispering_Root",
+  const root = (n, sceneName, zone, hint, essence) => ({
+    id: "root_" + sceneName, name: "Racine de rêve #" + n, en: "Whispering Root", hint: hint + " · " + essence + " Essences", zone, essence, wiki: "Whispering_Root",
     check: (pd) => has(pd.scenesEncounteredDreamPlantC, sceneName),
   });
 
@@ -378,21 +378,21 @@
       id: "roots", title: "Racines de rêve", extra: true, icon: "❧",
       desc: "Optionnel : chaque racine récoltée avec l'Aiguillon des rêves donne des Essences.",
       items: [
-        root(1, "Crossroads_07", "crossroads", "Routes Oubliées"),
-        root(2, "Crossroads_ShamanTemple", "crossroads", "Butte Ancestrale"),
-        root(3, "Fungus1_13", "greenpath", "Vertchemin"),
-        root(4, "Cliffs_01", "cliffs", "Falaises Hurlantes"),
-        root(5, "Fungus2_17", "fungal", "Village des Mantes"),
-        root(6, "Fungus2_33", "fungal", "Caverne Nocive, près de Mangepatte"),
-        root(7, "Fungus3_11", "gardens", "Jardins de la Reine"),
-        root(8, "Ruins1_17", "city", "Cité des Larmes, près des Entrepôts"),
-        root(9, "Abyss_01", "waterways", "Voies d'Eau Royales, côté Bassin Ancestral"),
-        root(10, "Mines_23", "peak", "Mont Cristal"),
-        root(11, "RestingGrounds_05", "resting", "Repos Éternel"),
-        root(12, "RestingGrounds_08", "resting", "Clairière des Esprits"),
-        root(13, "Deepnest_39", "deepnest", "Nid-profond, zone obscure"),
-        root(14, "Deepnest_East_07", "edge", "Frontières du Royaume"),
-        root(15, "Hive_02", "hive", "La Ruche"),
+        root(1, "Crossroads_07", "crossroads", "Routes Oubliées, à droite du Père des larves", 29),
+        root(2, "Crossroads_ShamanTemple", "crossroads", "Butte Ancestrale", 42),
+        root(3, "Fungus1_13", "greenpath", "Vertchemin, côté Jardins de la Reine", 44),
+        root(4, "Cliffs_01", "cliffs", "Falaises Hurlantes, grande zone principale", 46),
+        root(5, "Fungus2_17", "fungal", "Caverne Nocive, au-dessus du Village des Mantes", 18),
+        root(6, "Fungus2_33", "fungal", "Caverne Nocive, à gauche de Mangepatte", 20),
+        root(7, "Fungus3_11", "gardens", "Jardins de la Reine, sous le banc de droite", 29),
+        root(8, "Ruins1_17", "city", "Cité des Larmes, sous la station de Coléoptère", 28),
+        root(9, "Abyss_01", "basin", "Ascenseur brisé, entre la Cité des Larmes et le Bassin Ancestral", 35),
+        root(10, "Mines_23", "peak", "Couronne d'Hallownest, au sommet du Mont Cristal", 21),
+        root(11, "RestingGrounds_05", "resting", "Repos Éternel, à droite de la Voyante", 20),
+        root(12, "RestingGrounds_08", "resting", "Clairière des Esprits", 34),
+        root(13, "Deepnest_39", "deepnest", "Nid-profond, sous les Jardins de la Reine", 45),
+        root(14, "Deepnest_East_07", "edge", "Frontières du Royaume, près de la Tour de l'Amour", 51),
+        root(15, "Hive_02", "hive", "La Ruche, à droite du banc", 20),
       ],
     },
     {

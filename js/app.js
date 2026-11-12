@@ -26,6 +26,7 @@
     notify: LS.get("hk.notify", false),
     shared: false,
     mapZone: LS.get("hk.mapZone", null),
+    mapMode: LS.get("hk.mapMode", "items"),
     optional: LS.get("hk.optional", true),
     news: LS.get("hk.news", null), // { items: [ids], pctFrom, pctTo, timeDelta, at, fileName }
     collapsed: new Set(LS.get("hk.collapsed", [])),
@@ -112,7 +113,9 @@
     const shopFlags = {};
     for (const f of (window.HKFeatures ? HKFeatures.SHOP_FLAGS : [])) shopFlags[f] = pd[f] === true;
     const relics = [1, 2, 3, 4].map((i) => pd["trinket" + i] || 0);
-    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics,
+    const seer = { d1: pd.dreamReward1 === true, d3: pd.dreamReward3 === true, c30: pd.gotCharm_30 === true, d5: pd.dreamReward5 === true,
+      gate: pd.hasDreamGate === true, d6: pd.dreamReward6 === true, d7: pd.dreamReward7 === true, awoken: pd.dreamNailUpgraded === true, moth: pd.mothDeparted === true };
+    const result = { done, counters, meta, stats, pctOverride, journal, charms, statues, shopFlags, relics, seer,
       bank: pd.bankerAccountPurchased ? pd.bankerBalance || 0 : 0 };
     // Achievements
     if (window.HKFeatures) {
@@ -540,6 +543,105 @@
     return out;
   }
 
+  // Journal area codes -> map zones
+  const JOURNAL_TO_MAP = {
+    kingspass: "dirtmouth", dirtmouth: "dirtmouth", infected: "crossroads", crossroads: "crossroads", egg: "crossroads", ancestral: "crossroads",
+    greenpath: "greenpath", stone: "greenpath", unn: "greenpath", overgrown: "fog", gardens: "gardens", fungalcore: "fungal", mantis: "fungal",
+    fungal: "fungal", archives: "fog", fog: "fog", crystalmound: "peak", peak: "peak", sanctum: "city", spire: "city", love: "city", city: "city",
+    isma: "waterways", junk: "waterways", waterways: "waterways", village: "deepnest", tramway: "deepnest", deepnest: "deepnest", basin: "basin",
+    abyss: "abyss", edge: "edge", hive: "hive", colosseum: "colosseum", cliffs: "cliffs", resting: "resting", palace: "palace",
+    godhome: "godhome", storms: "godhome", greyprince: "dirtmouth",
+  };
+  const ESSENCE_SOURCES = ["roots", "warriors"];
+  const DREAM_BOSSES = ["falseKnightDreamDefeated", "mageLordDreamDefeated", "infectedKnightDreamDefeated", "whiteDefenderDefeated", "greyPrinceDefeated"];
+
+  // Uniform entries { name, sub, color, done, amount } for a zone in the current map mode
+  function zoneEntries(zoneId, mode) {
+    const strip = (n) => n.replace(/^#\d+ /, "");
+    if (mode === "journal") {
+      const j = state.save && state.save.journal;
+      if (!j) return [];
+      const showNames = LS.get("hk.journalNames", true);
+      const zonesOf = window.HKJournalZones || {};
+      return (window.HKJournal || [])
+        .filter((e) => (!e.opt || state.optional) && (zonesOf[e.k] || []).some((c) => JOURNAL_TO_MAP[c] === zoneId))
+        .map((e) => {
+          const [d, left] = j[e.k] || [0, e.n];
+          const st = !d ? "unknown" : left > 0 ? "hunting" : "complete";
+          return {
+            key: e.k,
+            name: st === "unknown" && !showNames ? "???" : e.fr,
+            sub: st === "unknown" ? `Pas encore rencontré · ${e.n} à vaincre` : st === "hunting" ? `Encore ${left} à vaincre (${e.n - left}/${e.n})` : "Notes complètes ✦",
+            color: st === "complete" ? "#f3c65a" : "#ef8b8b",
+            done: st === "complete",
+          };
+        });
+    }
+    if (mode === "essence") {
+      const out = [];
+      for (const s of SECTIONS) {
+        for (const it of s.items || []) {
+          const isSource = ESSENCE_SOURCES.includes(s.id) || DREAM_BOSSES.includes(it.id);
+          if (!isSource || ITEM_ZONE[it.id] !== zoneId) continue;
+          out.push({
+            key: it.id,
+            name: strip(it.name),
+            sub: it.essence ? `${it.essence} Essences` : s.id === "warriors" ? "Rêve de guerrier : beaucoup d'Essence" : "Boss des rêves : beaucoup d'Essence",
+            color: s.color,
+            done: isDone(it.id),
+            amount: it.essence || 0,
+          });
+        }
+      }
+      return out;
+    }
+    return zoneItems(zoneId).map((e) => ({
+      key: e.item.id,
+      name: strip(e.item.name),
+      sub: e.section.title.replace(/^DLC ?: /, "") + (e.item.hint ? " · " + e.item.hint : ""),
+      color: e.section.color,
+      done: isDone(e.item.id),
+    }));
+  }
+
+  // Seer milestones (Essence) and what they give
+  const SEER = [
+    [100, "Sceau d'Hallownest", (pd) => pd.d1], [300, "Minerai pâle", (pd) => pd.d3], [500, "Porteur de rêves", (pd) => pd.c30],
+    [700, "Fragment de réceptacle", (pd) => pd.d5], [900, "Portail des Rêves", (pd) => pd.gate], [1200, "Oeuf arcanique", (pd) => pd.d6],
+    [1500, "Éclat de masque", (pd) => pd.d7], [1800, "Aiguillon éveillé des rêves", (pd) => pd.awoken], [2400, "Derniers mots de la Voyante", (pd) => pd.moth],
+  ];
+
+  function renderEssenceBox() {
+    const box = $("#essenceBox");
+    if (state.mapMode !== "essence") { box.hidden = true; return; }
+    box.hidden = false;
+    const sv = state.save;
+    if (!sv || !sv.seer) {
+      box.innerHTML = `<p class="muted">Chargez une sauvegarde pour suivre votre Essence.</p>`;
+      return;
+    }
+    const ess = sv.stats ? sv.stats.essence : 0;
+    const next = SEER.find(([n, , f]) => !f(sv.seer));
+    const rootsLeft = SECTIONS.find((s) => s.id === "roots").items.filter((it) => !isDone(it.id));
+    const rootEss = rootsLeft.reduce((a, it) => a + (it.essence || 0), 0);
+    const warriorsLeft = SECTIONS.find((s) => s.id === "warriors").items.filter((it) => !isDone(it.id)).length;
+    const bossesLeft = DREAM_BOSSES.filter((id) => !isDone(id)).length;
+    const fmt = (n) => Number(n).toLocaleString("fr-FR");
+    box.innerHTML = `
+      <div class="ess-top">
+        <div><small>Essence</small><strong>${fmt(ess)}</strong><em>${next ? (ess >= next[0] ? `palier ${fmt(next[0])} atteint : allez voir la Voyante !` : `encore ${fmt(next[0] - ess)} pour ${next[1]}`) : "toutes les récompenses obtenues ✦"}</em></div>
+        <div><small>Racines de rêve restantes</small><strong>${rootsLeft.length}</strong><em>${fmt(rootEss)} Essences à récolter</em></div>
+        <div><small>Rêves de guerriers restants</small><strong>${warriorsLeft}</strong><em>chacun donne beaucoup d'Essence</em></div>
+        <div><small>Boss des rêves restants</small><strong>${bossesLeft}</strong><em>optionnels, très rentables</em></div>
+      </div>
+      <ol class="seer-track">${SEER.map(([n, label, f]) => {
+        const got = f(sv.seer);
+        const ready = !got && ess >= n;
+        return `<li class="${got ? "got" : ready ? "ready" : ""}"><b>${fmt(n)}</b><span>${esc(label)}</span></li>`;
+      }).join("")}</ol>
+      <p class="small muted">Astuces : récoltez chaque racine de rêve en entier (frappez les orbes avec l'Aiguillon des rêves), affrontez les rêves de guerriers et les boss des rêves, et équipez le Charme Porteur de rêves, qui fait tomber plus souvent de l'Essence des ennemis vaincus.</p>`;
+  }
+
   function zoneColor(ratio) {
     if (ratio >= 1) return "#f3c65a";
     // From dim slate to soul blue as progress grows.
@@ -561,9 +663,12 @@
   }
 
   function renderMap() {
+    const mode = state.mapMode || "items";
+    for (const b of document.querySelectorAll("#mapMode button")) b.classList.toggle("on", b.dataset.mm === mode);
+    renderEssenceBox();
     const zones = MAP_ZONES.map((z) => {
-      const list = zoneItems(z.id);
-      const done = list.filter((e) => isDone(e.item.id)).length;
+      const list = zoneEntries(z.id, mode);
+      const done = list.filter((e) => e.done).length;
       return { ...z, list, done, total: list.length, ratio: list.length ? done / list.length : 0 };
     });
     const byId = Object.fromEntries(zones.map((z) => [z.id, z]));
@@ -591,7 +696,7 @@
         <rect class="zone-fill" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="20" style="opacity:${0.12 + z.ratio * 0.4}"/>
         <text class="zone-name" x="${z.x + 14}" y="${z.y + 26}">${wrapName(z.name, z.w).map((l, i) => `<tspan x="${z.x + 14}" dy="${i ? 17 : 0}">${esc(l)}</tspan>`).join("")}</text>
         ${z.sub ? `<text class="zone-sub" x="${z.x + 14}" y="${z.y + 26 + 16 * wrapName(z.name, z.w).length}">${esc(z.sub)}</text>` : ""}
-        <text class="zone-pct" x="${z.x + z.w - 14}" y="${z.y + z.h - 22}" text-anchor="end">${pct}%</text>
+        <text class="zone-pct" x="${z.x + z.w - 14}" y="${z.y + z.h - 22}" text-anchor="end">${z.total ? pct + "%" : "—"}</text>
         <text class="zone-count" x="${z.x + 14}" y="${z.y + z.h - 22}">${z.done}/${z.total}</text>
         <rect class="zone-track" x="${z.x + 14}" y="${z.y + z.h - 14}" width="${barW}" height="4" rx="2"/>
         <rect class="zone-bar" x="${z.x + 14}" y="${z.y + z.h - 14}" width="${barW * z.ratio}" height="4" rx="2"/>
@@ -606,24 +711,30 @@
       ${links}${shapes}
     </svg>`;
 
-    const totalDone = zones.reduce((a, z) => a + z.done, 0), total = zones.reduce((a, z) => a + z.total, 0);
+    // Count each item / creature once, even if it appears in several zones
+    const allKeys = new Map();
+    for (const zz of zones) for (const e of zz.list) allKeys.set(e.key, allKeys.get(e.key) || e.done);
+    const total = allKeys.size, totalDone = [...allKeys.values()].filter(Boolean).length;
     const full = zones.filter((z) => z.ratio >= 1).length;
-    $("#mapSummary").textContent = `${full} / ${zones.length} zones complètes · ${totalDone} / ${total} objets`;
+    const unit = mode === "journal" ? "créatures" : mode === "essence" ? "sources d'Essence" : "objets";
+    const active = zones.filter((z) => z.total);
+    $("#mapSummary").textContent = `${active.filter((z) => z.ratio >= 1).length} / ${active.length} zones complètes · ${totalDone} / ${total} ${unit}`;
 
     const z = byId[state.mapZone];
-    const missing = z.list.filter((e) => !isDone(e.item.id));
-    const got = z.list.filter((e) => isDone(e.item.id));
-    const row = (e, d) => `<li class="${d ? "done" : ""}" style="--c:${e.section.color}">
+    const missing = z.list.filter((e) => !e.done);
+    const got = z.list.filter((e) => e.done);
+    const row = (e, d) => `<li class="${d ? "done" : ""}" style="--c:${e.color}">
         <span class="zi-dot"></span>
-        <div><b>${esc(e.item.name.replace(/^#\d+ /, ""))}</b><small>${esc(e.section.title.replace(/^DLC ?: /, ""))}${e.item.hint ? " · " + esc(e.item.hint) : ""}</small></div>
+        <div><b>${esc(e.name)}</b><small>${esc(e.sub)}</small></div>
       </li>`;
+    const noData = mode !== "items" && !(state.save && state.save.journal);
     $("#zoneDetail").innerHTML = `
       <div class="zd-head" style="--zc:${zoneColor(z.ratio)}">
         <h3>${esc(z.name)}</h3>
         <strong>${z.done}/${z.total}</strong>
       </div>
       <div class="bar"><i style="width:${z.ratio * 100}%;background:${zoneColor(z.ratio)}"></i></div>
-      ${missing.length ? `<h4>À trouver (${missing.length})</h4><ul class="zone-items">${missing.map((e) => row(e, false)).join("")}</ul>` : `<p class="zd-done">Zone terminée ✦</p>`}
+      ${noData ? `<p class="muted">Chargez une sauvegarde pour ce mode.</p>` : !z.total ? `<p class="muted">Rien à faire dans cette zone pour ce mode.</p>` : missing.length ? `<h4>${mode === "journal" ? "À chasser" : mode === "essence" ? "À récolter" : "À trouver"} (${missing.length})</h4><ul class="zone-items">${missing.map((e) => row(e, false)).join("")}</ul>` : `<p class="zd-done">Zone terminée ✦</p>`}
       ${got.length ? `<h4>Obtenu (${got.length})</h4><ul class="zone-items">${got.map((e) => row(e, true)).join("")}</ul>` : ""}`;
   }
 
@@ -1268,6 +1379,15 @@
       setTimeout(() => card.classList.remove("flash"), 1600);
     }
   }
+  $("#mapMode").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mm]");
+    if (!b) return;
+    state.mapMode = b.dataset.mm;
+    LS.set("hk.mapMode", state.mapMode);
+    state.mapZone = null;
+    renderMap();
+  });
+
   $("#map").addEventListener("click", (e) => {
     const g = e.target.closest("[data-zone]");
     if (!g) return;
